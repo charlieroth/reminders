@@ -5,6 +5,7 @@ import (
 
 	"github.com/charlieroth/reminders/internal/ports"
 	"github.com/charlieroth/reminders/internal/task"
+	"github.com/google/uuid"
 )
 
 type Service struct {
@@ -22,5 +23,21 @@ func (s *Service) CreateTask(ctx context.Context, req task.CreateTaskRequest) (t
 		return task.Task{}, err
 	}
 
+	return t, nil
+}
+
+func (s *Service) ListTasks(ctx context.Context) ([]task.Task, error) {
+	tasks, err := s.repo.ListTasks(ctx)
+	if err != nil {
+		return []task.Task{}, err
+	}
+	return tasks, nil
+}
+
+func (s *Service) GetTask(ctx context.Context, id uuid.UUID) (task.Task, error) {
+	t, err := s.repo.GetTask(ctx, id)
+	if err != nil {
+		return task.Task{}, err
+	}
 	return t, nil
 }
