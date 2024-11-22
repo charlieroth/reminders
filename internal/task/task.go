@@ -1,24 +1,10 @@
 package task
 
 import (
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
 )
-
-type TaskTitle struct {
-	Title string
-}
-
-func NewTaskTitle(title string) (TaskTitle, error) {
-	trimmed := strings.Trim(title, " ")
-	if trimmed == "" {
-		return TaskTitle{}, &TaskTitleEmptyError{}
-	}
-
-	return TaskTitle{Title: trimmed}, nil
-}
 
 type Task struct {
 	ID        uuid.UUID
