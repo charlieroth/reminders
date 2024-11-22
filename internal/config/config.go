@@ -7,14 +7,14 @@ import (
 
 type Config struct {
 	ServerPort  string
-	DatabaseURL string
 	LogLevel    string
+	DatabaseURL string
 }
 
 func NewConfig() (*Config, error) {
 	serverPort := os.Getenv("SERVER_PORT")
-	databaseURL := os.Getenv("DATABASE_URL")
 	logLevel := os.Getenv("LOG_LEVEL")
+	databaseURL := os.Getenv("DATABASE_URL")
 
 	if serverPort == "" || databaseURL == "" {
 		return nil, errors.New("SERVER_PORT and DATABASE_URL must be set")
@@ -26,7 +26,7 @@ func NewConfig() (*Config, error) {
 
 	return &Config{
 		ServerPort:  serverPort,
-		DatabaseURL: databaseURL,
 		LogLevel:    logLevel,
+		DatabaseURL: databaseURL,
 	}, nil
 }

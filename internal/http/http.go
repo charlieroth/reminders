@@ -27,6 +27,8 @@ func NewHttpServer(taskService *service.Service, config HttpServerConfig) *http.
 }
 
 func apiRoutes(router *gin.Engine, app *App) {
+	router.GET("/readiness", ReadinessCheck(app))
+	router.GET("/liveness", LivenessCheck(app))
 	router.POST("/tasks", CreateTask(app))
 	// router.PATCH("/tasks/:task_id", UpdateTask(app))
 	// router.GET("/tasks/:task_id", GetTask(app))

@@ -15,7 +15,7 @@ func NewService(repo ports.TaskRepository) *Service {
 	return &Service{repo: repo}
 }
 
-// Implement the TaskService interface
+// Implements the TaskService interface
 func (s *Service) CreateTask(ctx context.Context, req task.CreateTaskRequest) (task.Task, error) {
 	t, err := s.repo.CreateTask(ctx, req)
 	if err != nil {

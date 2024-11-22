@@ -1,1 +1,6 @@
 .env
+vendor/
+go.work
+go
+/.go-build/
+/postgres_data/

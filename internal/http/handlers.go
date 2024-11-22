@@ -8,6 +8,18 @@ import (
 	"github.com/google/uuid"
 )
 
+func ReadinessCheck(app *App) gin.HandlerFunc {
+	return func(gtx *gin.Context) {
+		gtx.JSON(http.StatusOK, gin.H{"status": "ok"})
+	}
+}
+
+func LivenessCheck(app *App) gin.HandlerFunc {
+	return func(gtx *gin.Context) {
+		gtx.JSON(http.StatusOK, gin.H{"status": "ok"})
+	}
+}
+
 type CreateTaskRequestBody struct {
 	Title string `json:"title"`
 }
