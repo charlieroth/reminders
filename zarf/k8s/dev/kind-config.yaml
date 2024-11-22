@@ -1,0 +1,11 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      # Reminders API
+      - containerPort: 8080
+        hostPort: 8080
+      # PostgreSQL
+      - containerPort: 5432
+        hostPort: 5432
