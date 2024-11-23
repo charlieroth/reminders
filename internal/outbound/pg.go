@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/charlieroth/reminders/internal/list"
 	"github.com/charlieroth/reminders/internal/task"
 	"github.com/google/uuid"
 )
@@ -118,4 +119,102 @@ func (pg *Pg) UpdateTask(ctx context.Context, id uuid.UUID, req task.UpdateTaskR
 	}
 
 	return t, nil
+}
+
+// Implements the ListRepository.CreateList method
+func (pg *Pg) CreateList(ctx context.Context, req list.CreateListRequest) (list.List, error) {
+	tx, err := pg.db.BeginTx(ctx, nil)
+	if err != nil {
+		return list.List{}, err
+	}
+	defer tx.Rollback()
+
+	listId := uuid.New()
+	row := pg.db.QueryRowContext(ctx, `
+		INSERT INTO lists (id, title)
+		VALUES ($1, $2)
+		RETURNING id, title, created_at, updated_at
+	`, listId, req.Name)
+
+	var l list.List
+	if err := row.Scan(&l.ID, &l.Name, &l.CreatedAt, &l.UpdatedAt); err != nil {
+		return list.List{}, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return list.List{}, err
+	}
+
+	return l, nil
+}
+
+// Implements the ListRepository.UpdateList method
+func (pg *Pg) UpdateList(ctx context.Context, id uuid.UUID, req list.UpdateListRequest) (list.List, error) {
+	tx, err := pg.db.BeginTx(ctx, nil)
+	if err != nil {
+		return list.List{}, err
+	}
+	defer tx.Rollback()
+
+	row := pg.db.QueryRowContext(ctx, `
+		UPDATE lists SET title = $1, updated_at = $2 WHERE id = $3
+		RETURNING id, name, created_at, updated_at
+	`, req.Name, time.Now().UTC(), id)
+
+	var l list.List
+	if err := row.Scan(&l.ID, &l.Name, &l.CreatedAt, &l.UpdatedAt); err != nil {
+		return list.List{}, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return list.List{}, err
+	}
+
+	return l, nil
+}
+
+// Implements the ListRepository.GetList method
+func (pg *Pg) GetList(ctx context.Context, id uuid.UUID) (list.List, error) {
+	tx, err := pg.db.BeginTx(ctx, nil)
+	if err != nil {
+		return list.List{}, err
+	}
+	defer tx.Rollback()
+
+	row := pg.db.QueryRowContext(ctx, `
+		SELECT id, name, created_at, updated_at FROM lists WHERE id = $1
+	`, id)
+
+	var l list.List
+	if err := row.Scan(&l.ID, &l.Name, &l.CreatedAt, &l.UpdatedAt); err != nil {
+		return list.List{}, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return list.List{}, err
+	}
+
+	return l, nil
+}
+
+// Implements the ListRepository.GetLists method
+func (pg *Pg) GetLists(ctx context.Context) ([]list.List, error) {
+	rows, err := pg.db.QueryContext(ctx, `
+		SELECT id, name, created_at, updated_at FROM lists
+	`)
+	if err != nil {
+		return []list.List{}, err
+	}
+	defer rows.Close()
+
+	var lists []list.List
+	for rows.Next() {
+		var l list.List
+		if err := rows.Scan(&l.ID, &l.Name, &l.CreatedAt, &l.UpdatedAt); err != nil {
+			return []list.List{}, err
+		}
+		lists = append(lists, l)
+	}
+
+	return lists, nil
 }

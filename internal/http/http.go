@@ -13,11 +13,12 @@ type HttpServerConfig struct {
 }
 
 type App struct {
-	taskService *service.Service
+	taskService *service.TaskService
+	listService *service.ListService
 }
 
-func NewHttpServer(taskService *service.Service, config HttpServerConfig) *http.Server {
-	app := &App{taskService: taskService}
+func NewHttpServer(taskService *service.TaskService, listService *service.ListService, config HttpServerConfig) *http.Server {
+	app := &App{taskService: taskService, listService: listService}
 	router := gin.New()
 	apiRoutes(router, app)
 	return &http.Server{
@@ -29,8 +30,14 @@ func NewHttpServer(taskService *service.Service, config HttpServerConfig) *http.
 func apiRoutes(router *gin.Engine, app *App) {
 	router.GET("/readiness", ReadinessCheck(app))
 	router.GET("/liveness", LivenessCheck(app))
+
 	router.GET("/tasks", ListTasks(app))
 	router.POST("/tasks", CreateTask(app))
 	router.GET("/tasks/:id", GetTask(app))
 	router.PATCH("/tasks/:id", UpdateTask(app))
+
+	router.GET("/lists", ListLists(app))
+	router.GET("/lists/:id", GetList(app))
+	router.POST("/lists", CreateList(app))
+	router.PATCH("/lists/:id", UpdateList(app))
 }
