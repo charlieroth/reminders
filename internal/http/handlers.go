@@ -24,6 +24,7 @@ func LivenessCheck(app *App) gin.HandlerFunc {
 type GetTaskResponseData struct {
 	ID        uuid.UUID `json:"id"`
 	Title     string    `json:"title"`
+	Completed bool      `json:"completed"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -32,6 +33,7 @@ func NewGetTaskResponseData(task task.Task) GetTaskResponseData {
 	return GetTaskResponseData{
 		ID:        task.ID,
 		Title:     task.Title,
+		Completed: task.Completed,
 		CreatedAt: task.CreatedAt,
 		UpdatedAt: task.UpdatedAt,
 	}
@@ -82,6 +84,7 @@ type CreateTaskRequestBody struct {
 type CreateTaskResponseData struct {
 	ID        uuid.UUID `json:"id"`
 	Title     string    `json:"title"`
+	Completed bool      `json:"completed"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -90,6 +93,7 @@ func NewCreateTaskResponseData(task task.Task) CreateTaskResponseData {
 	return CreateTaskResponseData{
 		ID:        task.ID,
 		Title:     task.Title,
+		Completed: task.Completed,
 		CreatedAt: task.CreatedAt,
 		UpdatedAt: task.UpdatedAt,
 	}
@@ -120,12 +124,14 @@ func CreateTask(app *App) gin.HandlerFunc {
 }
 
 type UpdateTaskRequestBody struct {
-	Title string `json:"title"`
+	Title     *string `json:"title"`
+	Completed *bool   `json:"completed"`
 }
 
 type UpdateTaskResponseData struct {
 	ID        uuid.UUID `json:"id"`
 	Title     string    `json:"title"`
+	Completed bool      `json:"completed"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -134,6 +140,7 @@ func NewUpdateTaskResponseData(task task.Task) UpdateTaskResponseData {
 	return UpdateTaskResponseData{
 		ID:        task.ID,
 		Title:     task.Title,
+		Completed: task.Completed,
 		CreatedAt: task.CreatedAt,
 		UpdatedAt: task.UpdatedAt,
 	}
@@ -153,7 +160,7 @@ func UpdateTask(app *App) gin.HandlerFunc {
 			return
 		}
 
-		t, err := app.taskService.UpdateTask(gtx, id, task.NewUpdateTaskRequest(req.Title))
+		t, err := app.taskService.UpdateTask(gtx, id, task.NewUpdateTaskRequest(req.Title, req.Completed))
 		if err != nil {
 			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

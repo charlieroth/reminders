@@ -9,12 +9,13 @@ import (
 type Task struct {
 	ID        uuid.UUID
 	Title     string
+	Completed bool
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
-func NewTask(id uuid.UUID, title string, now time.Time) Task {
-	return Task{ID: id, Title: title, CreatedAt: now, UpdatedAt: now}
+func NewTask(id uuid.UUID, title string, completed bool, now time.Time) Task {
+	return Task{ID: id, Title: title, Completed: completed, CreatedAt: now, UpdatedAt: now}
 }
 
 type CreateTaskRequest struct {
@@ -26,11 +27,12 @@ func NewCreateTaskRequest(title string) CreateTaskRequest {
 }
 
 type UpdateTaskRequest struct {
-	Title string
+	Title     *string
+	Completed *bool
 }
 
-func NewUpdateTaskRequest(title string) UpdateTaskRequest {
-	return UpdateTaskRequest{Title: title}
+func NewUpdateTaskRequest(title *string, completed *bool) UpdateTaskRequest {
+	return UpdateTaskRequest{Title: title, Completed: completed}
 }
 
 type TaskTitleEmptyError struct{}
