@@ -10,25 +10,36 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 
 -- TABLES 
 
+CREATE TABLE lists (
+ name character varying (255) NOT NULL,
+ updated_at timestamp with time zone  NOT NULL,
+ created_at timestamp with time zone  NOT NULL,
+ id uuid  NOT NULL
+);
+
 CREATE TABLE schema_migrations (
  id character varying (255) NOT NULL
 );
 
 CREATE TABLE tasks (
- title text  NOT NULL,
- id uuid  NOT NULL,
- created_at timestamp with time zone  NOT NULL,
+ completed boolean  NOT NULL,
  updated_at timestamp with time zone  NOT NULL,
- completed boolean  NOT NULL
+ created_at timestamp with time zone  NOT NULL,
+ id uuid  NOT NULL,
+ title text  NOT NULL
 );
 
 -- CONSTRAINTS 
+
+ALTER TABLE lists ADD CONSTRAINT lists_pkey PRIMARY KEY (id);
 
 ALTER TABLE schema_migrations ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (id);
 
 ALTER TABLE tasks ADD CONSTRAINT tasks_pkey PRIMARY KEY (id);
 
 -- INDEXES 
+
+CREATE UNIQUE INDEX lists_pkey ON public.lists USING btree (id)
 
 CREATE UNIQUE INDEX schema_migrations_pkey ON public.schema_migrations USING btree (id)
 
