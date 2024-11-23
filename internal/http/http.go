@@ -32,5 +32,5 @@ func apiRoutes(router *gin.Engine, app *App) {
 	router.GET("/tasks", ListTasks(app))
 	router.POST("/tasks", CreateTask(app))
 	router.GET("/tasks/:id", GetTask(app))
-	// router.PATCH("/tasks/:task_id", UpdateTask(app))
+	router.PATCH("/tasks/:id", UpdateTask(app))
 }

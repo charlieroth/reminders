@@ -65,6 +65,26 @@ func NewListTasksResponseData(tasks []task.Task) []GetTaskResponseData {
 	return responseData
 }
 
+type UpdateTaskRequestBody struct {
+	Title string `json:"title"`
+}
+
+type UpdateTaskResponseData struct {
+	ID        uuid.UUID `json:"id"`
+	Title     string    `json:"title"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func NewUpdateTaskResponseData(task task.Task) UpdateTaskResponseData {
+	return UpdateTaskResponseData{
+		ID:        task.ID,
+		Title:     task.Title,
+		CreatedAt: task.CreatedAt,
+		UpdatedAt: task.UpdatedAt,
+	}
+}
+
 func CreateTask(app *App) gin.HandlerFunc {
 	return func(gtx *gin.Context) {
 		var req CreateTaskRequestBody
@@ -86,6 +106,30 @@ func CreateTask(app *App) gin.HandlerFunc {
 		}
 
 		gtx.JSON(http.StatusCreated, NewCreateTaskResponseData(t))
+	}
+}
+
+func UpdateTask(app *App) gin.HandlerFunc {
+	return func(gtx *gin.Context) {
+		var req UpdateTaskRequestBody
+		if err := gtx.ShouldBindJSON(&req); err != nil {
+			gtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		id, err := uuid.Parse(gtx.Param("id"))
+		if err != nil {
+			gtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		t, err := app.taskService.UpdateTask(gtx, id, task.NewUpdateTaskRequest(req.Title))
+		if err != nil {
+			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		gtx.JSON(http.StatusOK, NewUpdateTaskResponseData(t))
 	}
 }
 

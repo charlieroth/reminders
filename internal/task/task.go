@@ -25,6 +25,14 @@ func NewCreateTaskRequest(title string) CreateTaskRequest {
 	return CreateTaskRequest{Title: title}
 }
 
+type UpdateTaskRequest struct {
+	Title string
+}
+
+func NewUpdateTaskRequest(title string) UpdateTaskRequest {
+	return UpdateTaskRequest{Title: title}
+}
+
 type TaskTitleEmptyError struct{}
 
 func (e *TaskTitleEmptyError) Error() string {
