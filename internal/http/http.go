@@ -28,6 +28,8 @@ func NewHttpServer(taskService *service.TaskService, listService *service.ListSe
 }
 
 func apiRoutes(router *gin.Engine, app *App) {
+	router.GET("/openapi.json", ServeOpenAPISpec(app))
+
 	router.GET("/readiness", ReadinessCheck(app))
 	router.GET("/liveness", LivenessCheck(app))
 

@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/charlieroth/reminders/internal/list"
@@ -9,6 +10,19 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
+func ServeOpenAPISpec(app *App) gin.HandlerFunc {
+	return func(gtx *gin.Context) {
+		specBytes, err := os.ReadFile("docs/reminders.openapi.json")
+		if err != nil {
+			gtx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read OpenAPI specification"})
+			return
+		}
+
+		gtx.Header("Content-Type", "application/json")
+		gtx.String(http.StatusOK, string(specBytes))
+	}
+}
 
 func ReadinessCheck(app *App) gin.HandlerFunc {
 	return func(gtx *gin.Context) {
