@@ -16,9 +16,9 @@ func NewTaskService(repo ports.TaskRepository) *TaskService {
 	return &TaskService{repo: repo}
 }
 
-// Implements the TaskService.CreateTask method
-func (s *TaskService) CreateTask(ctx context.Context, req task.CreateTaskRequest) (task.Task, error) {
-	t, err := s.repo.CreateTask(ctx, req)
+// Implements the TaskService.CreateListTask method
+func (s *TaskService) CreateListTask(ctx context.Context, listID uuid.UUID, req task.CreateTaskRequest) (task.Task, error) {
+	t, err := s.repo.CreateListTask(ctx, listID, req)
 	if err != nil {
 		return task.Task{}, err
 	}
@@ -26,9 +26,9 @@ func (s *TaskService) CreateTask(ctx context.Context, req task.CreateTaskRequest
 	return t, nil
 }
 
-// Implements the TaskService.ListTasks method
-func (s *TaskService) ListTasks(ctx context.Context) ([]task.Task, error) {
-	tasks, err := s.repo.ListTasks(ctx)
+// Implements the TaskService.GetListTasks method
+func (s *TaskService) GetListTasks(ctx context.Context, listID uuid.UUID) ([]task.Task, error) {
+	tasks, err := s.repo.GetListTasks(ctx, listID)
 	if err != nil {
 		return []task.Task{}, err
 	}
@@ -36,9 +36,9 @@ func (s *TaskService) ListTasks(ctx context.Context) ([]task.Task, error) {
 	return tasks, nil
 }
 
-// Implements the TaskService.GetTask method
-func (s *TaskService) GetTask(ctx context.Context, id uuid.UUID) (task.Task, error) {
-	t, err := s.repo.GetTask(ctx, id)
+// Implements the TaskService.GetListTask method
+func (s *TaskService) GetListTask(ctx context.Context, listID uuid.UUID, taskID uuid.UUID) (task.Task, error) {
+	t, err := s.repo.GetListTask(ctx, listID, taskID)
 	if err != nil {
 		return task.Task{}, err
 	}
@@ -46,9 +46,9 @@ func (s *TaskService) GetTask(ctx context.Context, id uuid.UUID) (task.Task, err
 	return t, nil
 }
 
-// Implements the TaskService.UpdateTask method
-func (s *TaskService) UpdateTask(ctx context.Context, id uuid.UUID, req task.UpdateTaskRequest) (task.Task, error) {
-	t, err := s.repo.UpdateTask(ctx, id, req)
+// Implements the TaskService.UpdateListTask method
+func (s *TaskService) UpdateListTask(ctx context.Context, listID uuid.UUID, taskID uuid.UUID, req task.UpdateTaskRequest) (task.Task, error) {
+	t, err := s.repo.UpdateListTask(ctx, listID, taskID, req)
 	if err != nil {
 		return task.Task{}, err
 	}

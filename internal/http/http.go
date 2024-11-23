@@ -33,13 +33,13 @@ func apiRoutes(router *gin.Engine, app *App) {
 	router.GET("/readiness", ReadinessCheck(app))
 	router.GET("/liveness", LivenessCheck(app))
 
-	router.GET("/tasks", ListTasks(app))
-	router.POST("/tasks", CreateTask(app))
-	router.GET("/tasks/:id", GetTask(app))
-	router.PATCH("/tasks/:id", UpdateTask(app))
-
-	router.GET("/lists", ListLists(app))
-	router.GET("/lists/:id", GetList(app))
+	router.GET("/lists", GetLists(app))
+	router.GET("/lists/:list_id", GetList(app))
 	router.POST("/lists", CreateList(app))
-	router.PATCH("/lists/:id", UpdateList(app))
+	router.PATCH("/lists/:list_id", UpdateList(app))
+
+	router.GET("/lists/:list_id/tasks", GetListTasks(app))
+	router.POST("/lists/:list_id/tasks", CreateListTask(app))
+	router.GET("/lists/:list_id/tasks/:task_id", GetListTask(app))
+	router.PATCH("/lists/:list_id/tasks/:task_id", UpdateListTask(app))
 }

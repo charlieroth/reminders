@@ -18,8 +18,8 @@ func NewPg(db *sql.DB) *Pg {
 	return &Pg{db: db}
 }
 
-// Implements the TaskRepository.CreateTask method
-func (pg *Pg) CreateTask(ctx context.Context, req task.CreateTaskRequest) (task.Task, error) {
+// Implements the TaskRepository.CreateListTask method
+func (pg *Pg) CreateListTask(ctx context.Context, listID uuid.UUID, req task.CreateTaskRequest) (task.Task, error) {
 	tx, err := pg.db.BeginTx(ctx, nil)
 	if err != nil {
 		return task.Task{}, err
@@ -38,6 +38,14 @@ func (pg *Pg) CreateTask(ctx context.Context, req task.CreateTaskRequest) (task.
 		return task.Task{}, err
 	}
 
+	_, err = pg.db.ExecContext(ctx, `
+		INSERT INTO list_tasks (list_id, task_id)
+		VALUES ($1, $2)
+	`, listID, taskId)
+	if err != nil {
+		return task.Task{}, err
+	}
+
 	if err := tx.Commit(); err != nil {
 		return task.Task{}, err
 	}
@@ -45,8 +53,8 @@ func (pg *Pg) CreateTask(ctx context.Context, req task.CreateTaskRequest) (task.
 	return t, nil
 }
 
-// Implements the TaskRepository.GetTask method
-func (pg *Pg) GetTask(ctx context.Context, id uuid.UUID) (task.Task, error) {
+// Implements the TaskRepository.GetListTask method
+func (pg *Pg) GetListTask(ctx context.Context, listID uuid.UUID, taskID uuid.UUID) (task.Task, error) {
 	tx, err := pg.db.BeginTx(ctx, nil)
 	if err != nil {
 		return task.Task{}, err
@@ -55,7 +63,7 @@ func (pg *Pg) GetTask(ctx context.Context, id uuid.UUID) (task.Task, error) {
 
 	row := pg.db.QueryRowContext(ctx, `
 		SELECT id, title, completed, created_at, updated_at FROM tasks WHERE id = $1
-	`, id)
+	`, taskID)
 
 	var t task.Task
 	if err := row.Scan(&t.ID, &t.Title, &t.Completed, &t.CreatedAt, &t.UpdatedAt); err != nil {
@@ -69,11 +77,13 @@ func (pg *Pg) GetTask(ctx context.Context, id uuid.UUID) (task.Task, error) {
 	return t, nil
 }
 
-// Implements the TaskRepository.ListTasks method
-func (pg *Pg) ListTasks(ctx context.Context) ([]task.Task, error) {
+// Implements the TaskRepository.GetListTasks method
+func (pg *Pg) GetListTasks(ctx context.Context, listID uuid.UUID) ([]task.Task, error) {
 	rows, err := pg.db.QueryContext(ctx, `
 		SELECT id, title, completed, created_at, updated_at FROM tasks
-	`)
+		JOIN list_tasks ON tasks.id = list_tasks.task_id
+		WHERE list_tasks.list_id = $1
+	`, listID)
 	if err != nil {
 		return []task.Task{}, err
 	}
@@ -91,8 +101,8 @@ func (pg *Pg) ListTasks(ctx context.Context) ([]task.Task, error) {
 	return tasks, nil
 }
 
-// Implements the TaskRepository.UpdateTask method
-func (pg *Pg) UpdateTask(ctx context.Context, id uuid.UUID, req task.UpdateTaskRequest) (task.Task, error) {
+// Implements the TaskRepository.UpdateListTask method
+func (pg *Pg) UpdateListTask(ctx context.Context, listID uuid.UUID, taskID uuid.UUID, req task.UpdateTaskRequest) (task.Task, error) {
 	tx, err := pg.db.BeginTx(ctx, nil)
 	if err != nil {
 		return task.Task{}, err
@@ -107,7 +117,7 @@ func (pg *Pg) UpdateTask(ctx context.Context, id uuid.UUID, req task.UpdateTaskR
 			updated_at = $3 
 		WHERE id = $4
 		RETURNING id, title, created_at, updated_at, completed
-	`, req.Title, req.Completed, time.Now().UTC(), id)
+	`, req.Title, req.Completed, time.Now().UTC(), taskID)
 
 	var t task.Task
 	if err := row.Scan(&t.ID, &t.Title, &t.CreatedAt, &t.UpdatedAt, &t.Completed); err != nil {

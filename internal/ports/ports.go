@@ -9,17 +9,17 @@ import (
 )
 
 type TaskService interface {
-	CreateTask(ctx context.Context, req task.CreateTaskRequest) (task.Task, error)
-	GetTask(ctx context.Context, id uuid.UUID) (task.Task, error)
-	ListTasks(ctx context.Context) ([]task.Task, error)
-	UpdateTask(ctx context.Context, id uuid.UUID, req task.UpdateTaskRequest) (task.Task, error)
+	CreateListTask(ctx context.Context, listID uuid.UUID, req task.CreateTaskRequest) (task.Task, error)
+	GetListTask(ctx context.Context, listID uuid.UUID, taskID uuid.UUID) (task.Task, error)
+	GetListTasks(ctx context.Context, listID uuid.UUID) ([]task.Task, error)
+	UpdateListTask(ctx context.Context, listID uuid.UUID, taskID uuid.UUID, req task.UpdateTaskRequest) (task.Task, error)
 }
 
 type TaskRepository interface {
-	CreateTask(ctx context.Context, req task.CreateTaskRequest) (task.Task, error)
-	GetTask(ctx context.Context, id uuid.UUID) (task.Task, error)
-	ListTasks(ctx context.Context) ([]task.Task, error)
-	UpdateTask(ctx context.Context, id uuid.UUID, req task.UpdateTaskRequest) (task.Task, error)
+	CreateListTask(ctx context.Context, listID uuid.UUID, req task.CreateTaskRequest) (task.Task, error)
+	GetListTask(ctx context.Context, listID uuid.UUID, taskID uuid.UUID) (task.Task, error)
+	GetListTasks(ctx context.Context, listID uuid.UUID) ([]task.Task, error)
+	UpdateListTask(ctx context.Context, listID uuid.UUID, taskID uuid.UUID, req task.UpdateTaskRequest) (task.Task, error)
 }
 
 type ListService interface {
