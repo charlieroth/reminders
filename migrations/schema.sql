@@ -18,7 +18,8 @@ CREATE TABLE tasks (
  title text  NOT NULL,
  id uuid  NOT NULL,
  created_at timestamp with time zone  NOT NULL,
- updated_at timestamp with time zone  NOT NULL
+ updated_at timestamp with time zone  NOT NULL,
+ completed boolean  NOT NULL
 );
 
 -- CONSTRAINTS 
