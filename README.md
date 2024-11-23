@@ -1,6 +1,6 @@
 # Reminders
 
-A HTTP API to store reminders & a CLI application to manage reminders.
+A Server and CLI application for managing reminders.
 
 ## Project Structure
 
