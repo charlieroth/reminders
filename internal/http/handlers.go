@@ -21,26 +21,6 @@ func LivenessCheck(app *App) gin.HandlerFunc {
 	}
 }
 
-type CreateTaskRequestBody struct {
-	Title string `json:"title"`
-}
-
-type CreateTaskResponseData struct {
-	ID        uuid.UUID `json:"id"`
-	Title     string    `json:"title"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
-func NewCreateTaskResponseData(task task.Task) CreateTaskResponseData {
-	return CreateTaskResponseData{
-		ID:        task.ID,
-		Title:     task.Title,
-		CreatedAt: task.CreatedAt,
-		UpdatedAt: task.UpdatedAt,
-	}
-}
-
 type GetTaskResponseData struct {
 	ID        uuid.UUID `json:"id"`
 	Title     string    `json:"title"`
@@ -57,6 +37,24 @@ func NewGetTaskResponseData(task task.Task) GetTaskResponseData {
 	}
 }
 
+func GetTask(app *App) gin.HandlerFunc {
+	return func(gtx *gin.Context) {
+		id, err := uuid.Parse(gtx.Param("id"))
+		if err != nil {
+			gtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		t, err := app.taskService.GetTask(gtx, id)
+		if err != nil {
+			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		gtx.JSON(http.StatusOK, NewGetTaskResponseData(t))
+	}
+}
+
 func NewListTasksResponseData(tasks []task.Task) []GetTaskResponseData {
 	responseData := []GetTaskResponseData{}
 	for _, t := range tasks {
@@ -65,19 +63,31 @@ func NewListTasksResponseData(tasks []task.Task) []GetTaskResponseData {
 	return responseData
 }
 
-type UpdateTaskRequestBody struct {
+func ListTasks(app *App) gin.HandlerFunc {
+	return func(gtx *gin.Context) {
+		tasks, err := app.taskService.ListTasks(gtx)
+		if err != nil {
+			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		gtx.JSON(http.StatusOK, NewListTasksResponseData(tasks))
+	}
+}
+
+type CreateTaskRequestBody struct {
 	Title string `json:"title"`
 }
 
-type UpdateTaskResponseData struct {
+type CreateTaskResponseData struct {
 	ID        uuid.UUID `json:"id"`
 	Title     string    `json:"title"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func NewUpdateTaskResponseData(task task.Task) UpdateTaskResponseData {
-	return UpdateTaskResponseData{
+func NewCreateTaskResponseData(task task.Task) CreateTaskResponseData {
+	return CreateTaskResponseData{
 		ID:        task.ID,
 		Title:     task.Title,
 		CreatedAt: task.CreatedAt,
@@ -109,6 +119,26 @@ func CreateTask(app *App) gin.HandlerFunc {
 	}
 }
 
+type UpdateTaskRequestBody struct {
+	Title string `json:"title"`
+}
+
+type UpdateTaskResponseData struct {
+	ID        uuid.UUID `json:"id"`
+	Title     string    `json:"title"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func NewUpdateTaskResponseData(task task.Task) UpdateTaskResponseData {
+	return UpdateTaskResponseData{
+		ID:        task.ID,
+		Title:     task.Title,
+		CreatedAt: task.CreatedAt,
+		UpdatedAt: task.UpdatedAt,
+	}
+}
+
 func UpdateTask(app *App) gin.HandlerFunc {
 	return func(gtx *gin.Context) {
 		var req UpdateTaskRequestBody
@@ -130,35 +160,5 @@ func UpdateTask(app *App) gin.HandlerFunc {
 		}
 
 		gtx.JSON(http.StatusOK, NewUpdateTaskResponseData(t))
-	}
-}
-
-func ListTasks(app *App) gin.HandlerFunc {
-	return func(gtx *gin.Context) {
-		tasks, err := app.taskService.ListTasks(gtx)
-		if err != nil {
-			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		gtx.JSON(http.StatusOK, NewListTasksResponseData(tasks))
-	}
-}
-
-func GetTask(app *App) gin.HandlerFunc {
-	return func(gtx *gin.Context) {
-		id, err := uuid.Parse(gtx.Param("id"))
-		if err != nil {
-			gtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		t, err := app.taskService.GetTask(gtx, id)
-		if err != nil {
-			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		gtx.JSON(http.StatusOK, NewGetTaskResponseData(t))
 	}
 }
