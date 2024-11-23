@@ -131,9 +131,9 @@ func (pg *Pg) CreateList(ctx context.Context, req list.CreateListRequest) (list.
 
 	listId := uuid.New()
 	row := pg.db.QueryRowContext(ctx, `
-		INSERT INTO lists (id, title)
+		INSERT INTO lists (id, name)
 		VALUES ($1, $2)
-		RETURNING id, title, created_at, updated_at
+		RETURNING id, name, created_at, updated_at
 	`, listId, req.Name)
 
 	var l list.List
@@ -157,7 +157,7 @@ func (pg *Pg) UpdateList(ctx context.Context, id uuid.UUID, req list.UpdateListR
 	defer tx.Rollback()
 
 	row := pg.db.QueryRowContext(ctx, `
-		UPDATE lists SET title = $1, updated_at = $2 WHERE id = $3
+		UPDATE lists SET name = $1, updated_at = $2 WHERE id = $3
 		RETURNING id, name, created_at, updated_at
 	`, req.Name, time.Now().UTC(), id)
 
