@@ -13,12 +13,13 @@ type HttpServerConfig struct {
 }
 
 type App struct {
-	taskService *service.TaskService
-	listService *service.ListService
+	databaseService *service.DatabaseService
+	taskService     *service.TaskService
+	listService     *service.ListService
 }
 
-func NewHttpServer(taskService *service.TaskService, listService *service.ListService, config HttpServerConfig) *http.Server {
-	app := &App{taskService: taskService, listService: listService}
+func NewHttpServer(databaseService *service.DatabaseService, taskService *service.TaskService, listService *service.ListService, config HttpServerConfig) *http.Server {
+	app := &App{databaseService: databaseService, taskService: taskService, listService: listService}
 	router := gin.New()
 	apiRoutes(router, app)
 	return &http.Server{

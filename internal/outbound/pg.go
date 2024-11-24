@@ -18,6 +18,40 @@ func NewPg(db *sql.DB) *Pg {
 	return &Pg{db: db}
 }
 
+// StatusCheck returns nil if it can successfully talk to the database. It
+// returns a non-nil error otherwise.
+// Implements the DatabaseService.StatusCheck method
+func (pg *Pg) StatusCheck(ctx context.Context) error {
+	// If the user doesn't give us a deadline set 1 second.
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, time.Second)
+		defer cancel()
+	}
+
+	for attempts := 1; ; attempts++ {
+		if err := pg.db.Ping(); err == nil {
+			break
+		}
+
+		time.Sleep(time.Duration(attempts) * 100 * time.Millisecond)
+
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+	}
+
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+
+	// Run a simple query to determine connectivity.
+	// Running this query forces a round trip through the database.
+	const q = `SELECT TRUE`
+	var tmp bool
+	return pg.db.QueryRowContext(ctx, q).Scan(&tmp)
+}
+
 // Implements the TaskRepository.CreateListTask method
 func (pg *Pg) CreateListTask(ctx context.Context, listID uuid.UUID, req task.CreateTaskRequest) (task.Task, error) {
 	tx, err := pg.db.BeginTx(ctx, nil)
