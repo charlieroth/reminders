@@ -11,35 +11,46 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 -- TABLES 
 
 CREATE TABLE lists (
- name character varying (255) NOT NULL,
  updated_at timestamp with time zone  NOT NULL,
  created_at timestamp with time zone  NOT NULL,
+ name character varying (255) NOT NULL,
  id uuid  NOT NULL
 );
 
 CREATE TABLE lists_tasks (
- task_id uuid  NOT NULL,
- list_id uuid  NOT NULL
+ list_id uuid  NOT NULL,
+ task_id uuid  NOT NULL
 );
 
 CREATE TABLE schema_migrations (
  id character varying (255) NOT NULL
 );
 
+CREATE TABLE sessions (
+ active boolean ,
+ user_id uuid  NOT NULL,
+ token character varying (255) NOT NULL,
+ user_agent text ,
+ id uuid  NOT NULL,
+ created_at timestamp with time zone  NOT NULL,
+ refreshed_at timestamp with time zone  NOT NULL,
+ expires_at timestamp with time zone  NOT NULL
+);
+
 CREATE TABLE tasks (
- completed boolean  NOT NULL,
- updated_at timestamp with time zone  NOT NULL,
  created_at timestamp with time zone  NOT NULL,
  id uuid  NOT NULL,
- title text  NOT NULL
+ title text  NOT NULL,
+ completed boolean  NOT NULL,
+ updated_at timestamp with time zone  NOT NULL
 );
 
 CREATE TABLE users (
+ id uuid  NOT NULL,
+ updated_at timestamp with time zone  NOT NULL,
  email text  NOT NULL,
  password_hash text  NOT NULL,
- id uuid  NOT NULL,
- created_at timestamp with time zone  NOT NULL,
- updated_at timestamp with time zone  NOT NULL
+ created_at timestamp with time zone  NOT NULL
 );
 
 -- CONSTRAINTS 
@@ -56,6 +67,10 @@ ALTER TABLE lists_tasks ADD CONSTRAINT lists_tasks_task_id_fkey FOREIGN KEY (tas
 
 ALTER TABLE schema_migrations ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (id);
 
+ALTER TABLE sessions ADD CONSTRAINT sessions_pkey PRIMARY KEY (id);
+
+ALTER TABLE sessions ADD CONSTRAINT sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
+
 ALTER TABLE tasks ADD CONSTRAINT tasks_pkey PRIMARY KEY (id);
 
 ALTER TABLE users ADD CONSTRAINT users_email_key UNIQUE (email);
@@ -64,11 +79,17 @@ ALTER TABLE users ADD CONSTRAINT users_pkey PRIMARY KEY (id);
 
 -- INDEXES 
 
+CREATE INDEX idx_sessions_token ON public.sessions USING btree (token)
+
+CREATE INDEX idx_sessions_user_id ON public.sessions USING btree (user_id)
+
 CREATE UNIQUE INDEX lists_pkey ON public.lists USING btree (id)
 
 CREATE UNIQUE INDEX lists_tasks_pkey ON public.lists_tasks USING btree (list_id, task_id)
 
 CREATE UNIQUE INDEX schema_migrations_pkey ON public.schema_migrations USING btree (id)
+
+CREATE UNIQUE INDEX sessions_pkey ON public.sessions USING btree (id)
 
 CREATE UNIQUE INDEX tasks_pkey ON public.tasks USING btree (id)
 
