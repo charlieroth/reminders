@@ -98,16 +98,16 @@ dev-docker:
 # ==============================================================================
 # Docker Compose
 
-compose-up-dev:
+compose-dev-up:
 	docker compose --profile dev up
 
-compose-up-db:
+compose-db-up:
 	docker compose --profile db up
 
-compose-down-dev:
+compose-dev-down:
 	docker compose --profile dev down
 
-compose-down-db:
+compose-db-down:
 	docker compose --profile db down
 
 # ==============================================================================
@@ -177,9 +177,11 @@ help:
 	@echo "  dev-docker              Pull Docker images"
 	@echo "  build                   Build all the containers"
 	@echo "  reminders               Build the reminders container"
-	@echo "  compose-up              Start the Docker Compose cluster"
-	@echo "  compose-up-dev          Start the Docker Compose cluster in dev mode"
-	@echo "  compose-up-db           Start the Docker Compose cluster in db mode"
-	@echo "  compose-down-dev        Stop the Docker Compose cluster in dev mode"
-	@echo "  compose-down-db         Stop the Docker Compose cluster in db mode"
+	@echo "  compose-dev-up          Start the Docker Compose cluster in dev mode"
+	@echo "  compose-db-up           Start the Docker Compose cluster in db mode"
+	@echo "  compose-dev-down        Stop the Docker Compose cluster in dev mode"
+	@echo "  compose-db-down         Stop the Docker Compose cluster in db mode"
+	@echo "  run                     Run the Reminders server"
+	@echo "  ready                   Make GET:/readiness request"
+	@echo "  live                    Make GET:/livness request"
 	@echo "  pgcli                   Connect to the database"
