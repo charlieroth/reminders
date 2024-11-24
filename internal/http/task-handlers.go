@@ -27,17 +27,6 @@ func NewGetTaskResponseData(task task.Task) GetTaskResponseData {
 	}
 }
 
-type GetListTaskResponseData struct {
-	ListID uuid.UUID           `json:"list_id"`
-	Task   GetTaskResponseData `json:"task"`
-}
-
-func NewGetListTaskResponseData(task task.Task) GetListTaskResponseData {
-	return GetListTaskResponseData{
-		Task: NewGetTaskResponseData(task),
-	}
-}
-
 func GetListTask(app *App) gin.HandlerFunc {
 	return func(gtx *gin.Context) {
 		listID, err := uuid.Parse(gtx.Param("list_id"))
@@ -58,22 +47,24 @@ func GetListTask(app *App) gin.HandlerFunc {
 			return
 		}
 
-		gtx.JSON(http.StatusOK, NewGetListTaskResponseData(t))
+		gtx.JSON(http.StatusOK, NewGetTaskResponseData(t))
 	}
 }
 
 type GetListTasksResponseData struct {
-	Tasks []GetListTaskResponseData `json:"tasks"`
+	ListID uuid.UUID             `json:"list_id"`
+	Tasks  []GetTaskResponseData `json:"tasks"`
 }
 
-func NewGetListTasksResponseData(tasks []task.Task) GetListTasksResponseData {
-	responseData := []GetListTaskResponseData{}
+func NewGetListTasksResponseData(listID uuid.UUID, tasks []task.Task) GetListTasksResponseData {
+	responseData := []GetTaskResponseData{}
 	for _, t := range tasks {
-		responseData = append(responseData, NewGetListTaskResponseData(t))
+		responseData = append(responseData, NewGetTaskResponseData(t))
 	}
 
 	return GetListTasksResponseData{
-		Tasks: responseData,
+		ListID: listID,
+		Tasks:  responseData,
 	}
 }
 
@@ -91,7 +82,7 @@ func GetListTasks(app *App) gin.HandlerFunc {
 			return
 		}
 
-		gtx.JSON(http.StatusOK, NewGetListTasksResponseData(tasks))
+		gtx.JSON(http.StatusOK, NewGetListTasksResponseData(listID, tasks))
 	}
 }
 
@@ -185,18 +176,6 @@ func NewUpdateTaskResponseData(task task.Task) UpdateTaskResponseData {
 	}
 }
 
-type UpdateListTaskResponseData struct {
-	ListID uuid.UUID              `json:"list_id"`
-	Task   UpdateTaskResponseData `json:"task"`
-}
-
-func NewUpdateListTaskResponseData(listID uuid.UUID, task task.Task) UpdateListTaskResponseData {
-	return UpdateListTaskResponseData{
-		ListID: listID,
-		Task:   NewUpdateTaskResponseData(task),
-	}
-}
-
 func UpdateListTask(app *App) gin.HandlerFunc {
 	return func(gtx *gin.Context) {
 		var request UpdateListTaskRequest
@@ -227,6 +206,6 @@ func UpdateListTask(app *App) gin.HandlerFunc {
 			return
 		}
 
-		gtx.JSON(http.StatusOK, NewUpdateListTaskResponseData(listID, t))
+		gtx.JSON(http.StatusOK, NewUpdateTaskResponseData(t))
 	}
 }

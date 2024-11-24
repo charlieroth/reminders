@@ -79,13 +79,13 @@ func UpdateList(app *App) gin.HandlerFunc {
 			return
 		}
 
-		id, err := uuid.Parse(gtx.Param("id"))
+		listID, err := uuid.Parse(gtx.Param("list_id"))
 		if err != nil {
 			gtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		l, err := app.listService.UpdateList(gtx, id, NewUpdateListRequest(req.Name))
+		l, err := app.listService.UpdateList(gtx, listID, NewUpdateListRequest(req.Name))
 		if err != nil {
 			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -113,13 +113,13 @@ func NewGetListResponseData(list list.List) GetListResponseData {
 
 func GetList(app *App) gin.HandlerFunc {
 	return func(gtx *gin.Context) {
-		id, err := uuid.Parse(gtx.Param("id"))
+		listID, err := uuid.Parse(gtx.Param("list_id"))
 		if err != nil {
 			gtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		l, err := app.listService.GetList(gtx, id)
+		l, err := app.listService.GetList(gtx, listID)
 		if err != nil {
 			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
