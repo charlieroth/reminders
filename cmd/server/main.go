@@ -39,12 +39,20 @@ func main() {
 
 	pg := outbound.NewPg(db)
 	userService := service.NewUserService(pg)
+	authService := service.NewAuthService(pg)
 	databaseService := service.NewDatabaseService(pg)
 	taskService := service.NewTaskService(pg)
 	listService := service.NewListService(pg)
-	srv := remindersHttp.NewHttpServer(userService, databaseService, taskService, listService, remindersHttp.HttpServerConfig{
-		Port: config.ServerPort,
-	})
+	srv := remindersHttp.NewHttpServer(
+		userService,
+		authService,
+		databaseService,
+		taskService,
+		listService,
+		remindersHttp.HttpServerConfig{
+			Port: config.ServerPort,
+		},
+	)
 
 	go func() {
 		// service connections

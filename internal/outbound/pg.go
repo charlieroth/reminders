@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/charlieroth/reminders/internal/list"
+	"github.com/charlieroth/reminders/internal/session"
 	"github.com/charlieroth/reminders/internal/task"
 	"github.com/charlieroth/reminders/internal/user"
 	"github.com/google/uuid"
@@ -51,6 +52,26 @@ func (pg *Pg) StatusCheck(ctx context.Context) error {
 	const q = `SELECT TRUE`
 	var tmp bool
 	return pg.db.QueryRowContext(ctx, q).Scan(&tmp)
+}
+
+// Implements the SessionRepository.CreateSession method
+func (pg *Pg) CreateSession(ctx context.Context, req session.CreateSessionRequest) (session.Session, error) {
+	return session.Session{}, nil
+}
+
+// Implements the SessionRepository.RefreshSession method
+func (pg *Pg) RefreshSession(ctx context.Context, req session.RefreshSessionRequest) (session.Session, error) {
+	return session.Session{}, nil
+}
+
+// Implements the SessionRepository.InvalidateSession method
+func (pg *Pg) InvalidateSession(ctx context.Context, req session.InvalidateSessionRequest) (session.Session, error) {
+	return session.Session{}, nil
+}
+
+// Implements the SessionRepository.GetSessions method
+func (pg *Pg) GetSessions(ctx context.Context) ([]session.Session, error) {
+	return []session.Session{}, nil
 }
 
 // Implements the UserRepository.CreateUser method

@@ -14,6 +14,7 @@ type HttpServerConfig struct {
 
 type App struct {
 	userService     *service.UserService
+	authService     *service.AuthService
 	databaseService *service.DatabaseService
 	taskService     *service.TaskService
 	listService     *service.ListService
@@ -21,12 +22,19 @@ type App struct {
 
 func NewHttpServer(
 	userService *service.UserService,
+	authService *service.AuthService,
 	databaseService *service.DatabaseService,
 	taskService *service.TaskService,
 	listService *service.ListService,
 	config HttpServerConfig,
 ) *http.Server {
-	app := &App{userService: userService, databaseService: databaseService, taskService: taskService, listService: listService}
+	app := &App{
+		userService:     userService,
+		authService:     authService,
+		databaseService: databaseService,
+		taskService:     taskService,
+		listService:     listService,
+	}
 	router := gin.New()
 	apiRoutes(router, app)
 	return &http.Server{
@@ -40,6 +48,11 @@ func apiRoutes(router *gin.Engine, app *App) {
 
 	router.GET("/readiness", ReadinessCheck(app))
 	router.GET("/liveness", LivenessCheck(app))
+
+	router.POST("/auth/login", Login(app))
+	router.POST("/auth/logout", Logout(app))
+	router.POST("/auth/refresh", Refresh(app))
+	router.GET("/auth/sessions", GetSessions(app))
 
 	router.GET("/users", GetUsers(app))
 	router.POST("/users", CreateUser(app))

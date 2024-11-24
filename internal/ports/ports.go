@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/charlieroth/reminders/internal/list"
+	"github.com/charlieroth/reminders/internal/session"
 	"github.com/charlieroth/reminders/internal/task"
 	"github.com/charlieroth/reminders/internal/user"
 	"github.com/google/uuid"
@@ -11,6 +12,20 @@ import (
 
 type DatabaseService interface {
 	StatusCheck(ctx context.Context) error
+}
+
+type AuthService interface {
+	Login(ctx context.Context, req session.CreateSessionRequest) (session.Session, error)
+	Logout(ctx context.Context, req session.CreateSessionRequest) (session.Session, error)
+	Refresh(ctx context.Context, req session.CreateSessionRequest) (session.Session, error)
+	GetSessions(ctx context.Context) ([]session.Session, error)
+}
+
+type SessionRepository interface {
+	CreateSession(ctx context.Context, req session.CreateSessionRequest) (session.Session, error)
+	RefreshSession(ctx context.Context, req session.RefreshSessionRequest) (session.Session, error)
+	InvalidateSession(ctx context.Context, req session.InvalidateSessionRequest) (session.Session, error)
+	GetSessions(ctx context.Context) ([]session.Session, error)
 }
 
 type UserService interface {
