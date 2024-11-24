@@ -27,11 +27,19 @@ CREATE TABLE schema_migrations (
 );
 
 CREATE TABLE tasks (
+ completed boolean  NOT NULL,
  updated_at timestamp with time zone  NOT NULL,
  created_at timestamp with time zone  NOT NULL,
  id uuid  NOT NULL,
- title text  NOT NULL,
- completed boolean  NOT NULL
+ title text  NOT NULL
+);
+
+CREATE TABLE users (
+ email text  NOT NULL,
+ password_hash text  NOT NULL,
+ id uuid  NOT NULL,
+ created_at timestamp with time zone  NOT NULL,
+ updated_at timestamp with time zone  NOT NULL
 );
 
 -- CONSTRAINTS 
@@ -50,6 +58,10 @@ ALTER TABLE schema_migrations ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY 
 
 ALTER TABLE tasks ADD CONSTRAINT tasks_pkey PRIMARY KEY (id);
 
+ALTER TABLE users ADD CONSTRAINT users_email_key UNIQUE (email);
+
+ALTER TABLE users ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
 -- INDEXES 
 
 CREATE UNIQUE INDEX lists_pkey ON public.lists USING btree (id)
@@ -59,4 +71,8 @@ CREATE UNIQUE INDEX lists_tasks_pkey ON public.lists_tasks USING btree (list_id,
 CREATE UNIQUE INDEX schema_migrations_pkey ON public.schema_migrations USING btree (id)
 
 CREATE UNIQUE INDEX tasks_pkey ON public.tasks USING btree (id)
+
+CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email)
+
+CREATE UNIQUE INDEX users_pkey ON public.users USING btree (id)
 
