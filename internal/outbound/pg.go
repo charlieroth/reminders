@@ -39,7 +39,7 @@ func (pg *Pg) CreateListTask(ctx context.Context, listID uuid.UUID, req task.Cre
 	}
 
 	_, err = pg.db.ExecContext(ctx, `
-		INSERT INTO list_tasks (list_id, task_id)
+		INSERT INTO lists_tasks (list_id, task_id)
 		VALUES ($1, $2)
 	`, listID, taskId)
 	if err != nil {
@@ -81,8 +81,8 @@ func (pg *Pg) GetListTask(ctx context.Context, listID uuid.UUID, taskID uuid.UUI
 func (pg *Pg) GetListTasks(ctx context.Context, listID uuid.UUID) ([]task.Task, error) {
 	rows, err := pg.db.QueryContext(ctx, `
 		SELECT id, title, completed, created_at, updated_at FROM tasks
-		JOIN list_tasks ON tasks.id = list_tasks.task_id
-		WHERE list_tasks.list_id = $1
+		JOIN lists_tasks ON tasks.id = lists_tasks.task_id
+		WHERE lists_tasks.list_id = $1
 	`, listID)
 	if err != nil {
 		return []task.Task{}, err
