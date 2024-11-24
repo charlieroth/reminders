@@ -5,11 +5,26 @@ import (
 
 	"github.com/charlieroth/reminders/internal/list"
 	"github.com/charlieroth/reminders/internal/task"
+	"github.com/charlieroth/reminders/internal/user"
 	"github.com/google/uuid"
 )
 
 type DatabaseService interface {
 	StatusCheck(ctx context.Context) error
+}
+
+type UserService interface {
+	CreateUser(ctx context.Context, req user.CreateUserRequest) (user.User, error)
+	GetUser(ctx context.Context, id uuid.UUID) (user.User, error)
+	GetUsers(ctx context.Context) ([]user.User, error)
+	UpdateUser(ctx context.Context, id uuid.UUID, req user.UpdateUserRequest) (user.User, error)
+}
+
+type UserRepository interface {
+	CreateUser(ctx context.Context, req user.CreateUserRequest) (user.User, error)
+	GetUser(ctx context.Context, id uuid.UUID) (user.User, error)
+	GetUsers(ctx context.Context) ([]user.User, error)
+	UpdateUser(ctx context.Context, id uuid.UUID, req user.UpdateUserRequest) (user.User, error)
 }
 
 type TaskService interface {

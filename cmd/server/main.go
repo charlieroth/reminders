@@ -38,10 +38,11 @@ func main() {
 	defer db.Close()
 
 	pg := outbound.NewPg(db)
+	userService := service.NewUserService(pg)
 	databaseService := service.NewDatabaseService(pg)
 	taskService := service.NewTaskService(pg)
 	listService := service.NewListService(pg)
-	srv := remindersHttp.NewHttpServer(databaseService, taskService, listService, remindersHttp.HttpServerConfig{
+	srv := remindersHttp.NewHttpServer(userService, databaseService, taskService, listService, remindersHttp.HttpServerConfig{
 		Port: config.ServerPort,
 	})
 

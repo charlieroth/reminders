@@ -7,6 +7,7 @@ import (
 
 	"github.com/charlieroth/reminders/internal/list"
 	"github.com/charlieroth/reminders/internal/task"
+	"github.com/charlieroth/reminders/internal/user"
 	"github.com/google/uuid"
 )
 
@@ -50,6 +51,99 @@ func (pg *Pg) StatusCheck(ctx context.Context) error {
 	const q = `SELECT TRUE`
 	var tmp bool
 	return pg.db.QueryRowContext(ctx, q).Scan(&tmp)
+}
+
+// Implements the UserRepository.CreateUser method
+func (pg *Pg) CreateUser(ctx context.Context, req user.CreateUserRequest) (user.User, error) {
+	tx, err := pg.db.BeginTx(ctx, nil)
+	if err != nil {
+		return user.User{}, err
+	}
+	defer tx.Rollback()
+
+	userId := uuid.New()
+	row := pg.db.QueryRowContext(ctx, `
+		INSERT INTO users (id, email, password_hash)
+		VALUES ($1, $2, $3)
+		RETURNING id, email, created_at, updated_at
+	`, userId, req.Email, req.PasswordHash)
+
+	var u user.User
+	if err := row.Scan(&u.ID, &u.Email, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		return user.User{}, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return user.User{}, err
+	}
+
+	return u, nil
+}
+
+// Implements the UserRepository.GetUser method
+func (pg *Pg) GetUser(ctx context.Context, id uuid.UUID) (user.User, error) {
+	row := pg.db.QueryRowContext(ctx, `
+		SELECT id, email, created_at, updated_at FROM users WHERE id = $1
+	`, id)
+
+	var u user.User
+	if err := row.Scan(&u.ID, &u.Email, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		return user.User{}, err
+	}
+
+	return u, nil
+}
+
+// Implements the UserRepository.GetUsers method
+func (pg *Pg) GetUsers(ctx context.Context) ([]user.User, error) {
+	rows, err := pg.db.QueryContext(ctx, `
+		SELECT id, email, created_at, updated_at FROM users
+	`)
+	if err != nil {
+		return []user.User{}, err
+	}
+	defer rows.Close()
+
+	var users []user.User
+	for rows.Next() {
+		var u user.User
+		if err := rows.Scan(&u.ID, &u.Email, &u.CreatedAt, &u.UpdatedAt); err != nil {
+			return []user.User{}, err
+		}
+		users = append(users, u)
+	}
+
+	return users, nil
+}
+
+// Implements the UserRepository.UpdateUser method
+func (pg *Pg) UpdateUser(ctx context.Context, id uuid.UUID, req user.UpdateUserRequest) (user.User, error) {
+	tx, err := pg.db.BeginTx(ctx, nil)
+	if err != nil {
+		return user.User{}, err
+	}
+	defer tx.Rollback()
+
+	row := pg.db.QueryRowContext(ctx, `
+		UPDATE users 
+		SET 
+			email = COALESCE($1, email),
+			password_hash = COALESCE($2, password_hash),
+			updated_at = $3 
+		WHERE id = $4
+		RETURNING id, email, created_at, updated_at
+	`, req.Email, req.PasswordHash, time.Now().UTC(), id)
+
+	var u user.User
+	if err := row.Scan(&u.ID, &u.Email, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		return user.User{}, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return user.User{}, err
+	}
+
+	return u, nil
 }
 
 // Implements the TaskRepository.CreateListTask method
