@@ -1,1 +1,932 @@
-{"openapi":"3.1.0","info":{"title":"Reminders","description":"","version":"1.0.0"},"tags":[],"paths":{"/liveness":{"get":{"summary":"Liveness","deprecated":false,"description":"Liveness check for the Reminders server application","tags":[],"parameters":[],"responses":{"200":{"description":"","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Liveness"}}},"headers":{}}},"security":[]}},"/readiness":{"get":{"summary":"Readiness","deprecated":false,"description":"Readiness check for the Reminders server application","tags":[],"parameters":[],"responses":{"200":{"description":"","content":{"application/json":{"schema":{"type":"object","properties":{}}}},"headers":{}},"503":{"description":"","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Readiness"}}},"headers":{}}},"security":[]}},"/lists/{list_id}/tasks":{"post":{"summary":"Create Task","deprecated":false,"description":"Create a task in the Reminders server application","tags":[],"parameters":[{"name":"list_id","in":"path","description":"","required":true,"schema":{"type":"string"}}],"requestBody":{"content":{"application/json":{"schema":{"type":"object","properties":{"title":{"type":"string","description":"Task Title"}},"required":["title"]},"example":{"title":"Clean bathroom"}}}},"responses":{"201":{"description":"","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Task"}}},"headers":{}}},"security":[]},"get":{"summary":"Get All List Tasks","deprecated":false,"description":"","tags":[],"parameters":[{"name":"list_id","in":"path","description":"","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"","content":{"application/json":{"schema":{"type":"object","properties":{"list_id":{"type":"string","description":"List UUID"},"tasks":{"type":"array","items":{"$ref":"#/components/schemas/Task"}}},"required":["list_id","tasks"]}}},"headers":{}}},"security":[]}},"/lists/{list_id}/tasks/{task_id}":{"get":{"summary":"Get List Task","deprecated":false,"description":"","tags":[],"parameters":[{"name":"list_id","in":"path","description":"","required":true,"schema":{"type":"string"}},{"name":"task_id","in":"path","description":"","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Task"}}},"headers":{}}},"security":[]},"patch":{"summary":"Update Task","deprecated":false,"description":"","tags":[],"parameters":[{"name":"list_id","in":"path","description":"","required":true,"schema":{"type":"string"}},{"name":"task_id","in":"path","description":"","required":true,"schema":{"type":"string"}}],"requestBody":{"content":{"application/json":{"schema":{"type":"object","properties":{"title":{"type":"string","description":"New title for the task"},"completed":{"type":"boolean","description":"New completed status for the task"}}}}}},"responses":{"200":{"description":"","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Task"}}},"headers":{}}},"security":[]}},"/lists":{"post":{"summary":"Create List","deprecated":false,"description":"","tags":[],"parameters":[],"requestBody":{"content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string","description":"Name of list"}},"required":["name"]}}}},"responses":{"201":{"description":"","content":{"application/json":{"schema":{"$ref":"#/components/schemas/List"}}},"headers":{}}},"security":[]},"get":{"summary":"Get All Lists","deprecated":false,"description":"","tags":[],"parameters":[],"responses":{"200":{"description":"","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/List"}}}},"headers":{}}},"security":[]}},"/lists/{id}":{"patch":{"summary":"Update List","deprecated":false,"description":"","tags":[],"parameters":[{"name":"id","in":"path","description":"","required":true,"schema":{"type":"string"}}],"requestBody":{"content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string","description":"New name of list"}},"required":["name"]}}}},"responses":{"200":{"description":"","content":{"application/json":{"schema":{"$ref":"#/components/schemas/List"}}},"headers":{}}},"security":[]},"get":{"summary":"Get List","deprecated":false,"description":"","tags":[],"parameters":[{"name":"id","in":"path","description":"","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"","content":{"application/json":{"schema":{"$ref":"#/components/schemas/List"}}},"headers":{}}},"security":[]}},"/openapi.json":{"get":{"summary":"OpenAPI Spec","deprecated":false,"description":"","tags":[],"parameters":[],"responses":{"200":{"description":"","content":{"application/json":{"schema":{"type":"object","properties":{}}}},"headers":{}}},"security":[]}},"/users/{user_id}":{"get":{"summary":"Get User","deprecated":false,"description":"","tags":[],"parameters":[{"name":"user_id","in":"path","description":"","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"","content":{"application/json":{"schema":{"$ref":"#/components/schemas/User"}}},"headers":{}}},"security":[]},"patch":{"summary":"Update User","deprecated":false,"description":"","tags":[],"parameters":[{"name":"user_id","in":"path","description":"","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"","content":{"application/json":{"schema":{"type":"object","properties":{"email":{"type":"string","description":"Email address to update users' email to"},"password_hash":{"type":"string","description":"Password has to update user's password_hash to"}}}}},"headers":{}}},"security":[]}},"/users":{"get":{"summary":"Get All Users","deprecated":false,"description":"","tags":[],"parameters":[],"responses":{"200":{"description":"","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/User"}}}},"headers":{}}},"security":[]},"post":{"summary":"Create User","deprecated":false,"description":"","tags":[],"parameters":[],"responses":{"201":{"description":"","content":{"application/json":{"schema":{"type":"object","properties":{"email":{"type":"string","description":"User email address"},"password_hash":{"type":"string","description":"Hashed version of user password"}},"required":["email","password_hash"]}}},"headers":{}}},"security":[]}}},"components":{"schemas":{"Task":{"type":"object","properties":{"id":{"type":"string","description":"Task UUID"},"title":{"type":"string","description":"Task title"},"completed":{"type":"boolean"},"created_at":{"type":"string","description":"Time task was created (UTC)"},"updated_at":{"type":"string","description":"Time task was last updated (UTC)"}},"required":["id","title","created_at","updated_at","completed"]},"List":{"type":"object","properties":{"id":{"type":"string","description":"List UUID"},"name":{"type":"string","description":"List name"},"created_at":{"type":"string","description":"Time list was created (UTC)"},"updated_at":{"type":"string","description":"Time list was last updated (UTC)"}},"required":["id","name","created_at","updated_at"]},"Liveness":{"type":"object","properties":{"status":{"type":"string"},"host":{"type":"string"},"gomaxprocs":{"type":"number"}},"required":["status","host","gomaxprocs"]},"Readiness":{"type":"object","properties":{"status":{"type":"string"}},"required":["status"]},"User":{"type":"object","properties":{"id":{"type":"string","description":"User UUID"},"email":{"type":"string","description":"User email address"},"created_at":{"type":"string","description":"Time user was created (UTC)"},"updated_at":{"type":"string","description":"Time user was last updated (UTC)"}},"required":["id","email","created_at","updated_at"]}},"securitySchemes":{}},"servers":[]}
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Reminders",
+        "description": "",
+        "version": "1.0.0"
+    },
+    "tags": [],
+    "paths": {
+        "/admin/users/{user_id}": {
+            "get": {
+                "summary": "Get User",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/User"
+                                    }
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/admin/users": {
+            "get": {
+                "summary": "Get All Users",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/User"
+                                    }
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/lists": {
+            "post": {
+                "summary": "Create List",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "description": "Name of list"
+                                    }
+                                },
+                                "required": [
+                                    "name"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/List"
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            },
+            "get": {
+                "summary": "Get All Lists",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/List"
+                                    }
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/lists/{id}": {
+            "patch": {
+                "summary": "Update List",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "description": "New name of list"
+                                    }
+                                },
+                                "required": [
+                                    "name"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/List"
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            },
+            "get": {
+                "summary": "Get List",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/List"
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/lists/{list_id}/tasks": {
+            "post": {
+                "summary": "Create Task",
+                "deprecated": false,
+                "description": "Create a task in the Reminders server application",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "list_id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "description": "Task Title"
+                                    }
+                                },
+                                "required": [
+                                    "title"
+                                ]
+                            },
+                            "example": {
+                                "title": "Clean bathroom"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Task"
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            },
+            "get": {
+                "summary": "Get All List Tasks",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "list_id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "list_id": {
+                                            "type": "string",
+                                            "description": "List UUID"
+                                        },
+                                        "tasks": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Task"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "list_id",
+                                        "tasks"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/lists/{list_id}/tasks/{task_id}": {
+            "get": {
+                "summary": "Get List Task",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "list_id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "task_id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Task"
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            },
+            "patch": {
+                "summary": "Update Task",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "list_id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "task_id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "description": "New title for the task"
+                                    },
+                                    "completed": {
+                                        "type": "boolean",
+                                        "description": "New completed status for the task"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Task"
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/users": {
+            "post": {
+                "summary": "Create User",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "description": "User email address"
+                                    },
+                                    "password_hash": {
+                                        "type": "string",
+                                        "description": "Hashed version of user password"
+                                    }
+                                },
+                                "required": [
+                                    "email",
+                                    "password_hash"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": []
+            }
+        },
+        "/users/login": {
+            "post": {
+                "summary": "Login",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "description": "User email address"
+                                    },
+                                    "password_hash": {
+                                        "type": "string",
+                                        "description": "User password, hashed"
+                                    }
+                                },
+                                "required": [
+                                    "email",
+                                    "password_hash"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "session_id": {
+                                            "type": "string",
+                                            "description": "Session UUID"
+                                        },
+                                        "access_token": {
+                                            "type": "string",
+                                            "description": "JWT Access Token"
+                                        },
+                                        "access_token_expires_at": {
+                                            "type": "string",
+                                            "description": "Timestamp when access token expires"
+                                        },
+                                        "refresh_token": {
+                                            "type": "string",
+                                            "description": "JWT Refresh Token"
+                                        },
+                                        "refresh_token_expires_at": {
+                                            "type": "string",
+                                            "description": "Timestamp when refresh token expires"
+                                        }
+                                    },
+                                    "required": [
+                                        "session_id",
+                                        "access_token",
+                                        "access_token_expires_at",
+                                        "refresh_token",
+                                        "refresh_token_expires_at"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": []
+            }
+        },
+        "/users/{user_id}": {
+            "patch": {
+                "summary": "Update User",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "email": {
+                                            "type": "string",
+                                            "description": "Email address to update users' email to"
+                                        },
+                                        "password_hash": {
+                                            "type": "string",
+                                            "description": "Password has to update user's password_hash to"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/users/logout": {
+            "post": {
+                "summary": "Logout",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {}
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/tokens/refresh": {
+            "post": {
+                "summary": "Refresh Session",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {}
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/tokens/revoke/{session_id}": {
+            "post": {
+                "summary": "Revoke Session",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [
+                    {
+                        "name": "session_id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {}
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/liveness": {
+            "get": {
+                "summary": "Liveness",
+                "deprecated": false,
+                "description": "Liveness check for the Reminders server application",
+                "tags": [],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Liveness"
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": []
+            }
+        },
+        "/readiness": {
+            "get": {
+                "summary": "Readiness",
+                "deprecated": false,
+                "description": "Readiness check for the Reminders server application",
+                "tags": [],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {}
+                                }
+                            }
+                        },
+                        "headers": {}
+                    },
+                    "503": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Readiness"
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": []
+            }
+        },
+        "/openapi.json": {
+            "get": {
+                "summary": "OpenAPI Spec",
+                "deprecated": false,
+                "description": "",
+                "tags": [],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {}
+                                }
+                            }
+                        },
+                        "headers": {}
+                    }
+                },
+                "security": []
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Task": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Task UUID"
+                    },
+                    "title": {
+                        "type": "string",
+                        "description": "Task title"
+                    },
+                    "completed": {
+                        "type": "boolean"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "description": "Time task was created (UTC)"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "description": "Time task was last updated (UTC)"
+                    }
+                },
+                "required": [
+                    "id",
+                    "title",
+                    "created_at",
+                    "updated_at",
+                    "completed"
+                ]
+            },
+            "List": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "List UUID"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "List name"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "description": "Time list was created (UTC)"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "description": "Time list was last updated (UTC)"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "created_at",
+                    "updated_at"
+                ]
+            },
+            "Liveness": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    },
+                    "host": {
+                        "type": "string"
+                    },
+                    "gomaxprocs": {
+                        "type": "number"
+                    }
+                },
+                "required": [
+                    "status",
+                    "host",
+                    "gomaxprocs"
+                ]
+            },
+            "Readiness": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            },
+            "User": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "User UUID"
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "User email address"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "description": "Time user was created (UTC)"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "description": "Time user was last updated (UTC)"
+                    }
+                },
+                "required": [
+                    "id",
+                    "email",
+                    "created_at",
+                    "updated_at"
+                ]
+            }
+        },
+        "securitySchemes": {
+            "bearer": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "servers": []
+}

@@ -47,34 +47,71 @@ func NewHttpServer(
 }
 
 func apiRoutes(router *gin.Engine, app *App) {
+	// GET:/openapi.json
 	router.GET("/openapi.json", ServeOpenAPISpec(app))
-
+	// GET:/readiness
 	router.GET("/readiness", ReadinessCheck(app))
+	// GET:/liveness
 	router.GET("/liveness", LivenessCheck(app))
 
-	authGroup := router.Group("/auth")
-	authGroup.POST("/login", Login(app))
-	authGroup.POST("/logout", Logout(app))
-	authGroup.POST("/refresh", Refresh(app))
-	authGroup.GET("/sessions", GetSessions(app))
-
-	userGroup := router.Group("/users")
-	userGroup.GET("", GetUsers(app))
-	userGroup.POST("", CreateUser(app))
-	userGroup.GET("/:user_id", GetUser(app))
-	userGroup.PATCH("/:user_id", UpdateUser(app))
+	adminGroup := router.Group("/admin")
+	{
+		adminGroup.Use(AdminMiddleware(app))
+		// GET:/admin/users
+		adminGroup.GET("/users", GetUsers(app))
+		// GET:/admin/users/:user_id
+		adminGroup.GET("/users/:user_id", GetUser(app))
+	}
 
 	listGroup := router.Group("/lists")
-	listGroup.Use(AuthMiddleware(app))
-	listGroup.GET("", GetLists(app))
-	listGroup.GET("/:list_id", GetList(app))
-	listGroup.POST("", CreateList(app))
-	listGroup.PATCH("/:list_id", UpdateList(app))
+	{
+		listGroup.Use(AuthMiddleware(app))
+		// GET:/lists
+		listGroup.GET("", GetLists(app))
+		// GET:/lists/:list_id
+		listGroup.GET("/:list_id", GetList(app))
+		// POST:/lists
+		listGroup.POST("", CreateList(app))
+		// PATCH:/lists/:list_id
+		listGroup.PATCH("/:list_id", UpdateList(app))
+	}
 
 	taskGroup := listGroup.Group("/:list_id/tasks")
-	taskGroup.Use(AuthMiddleware(app))
-	taskGroup.GET("", GetListTasks(app))
-	taskGroup.POST("", CreateListTask(app))
-	taskGroup.GET("/:task_id", GetListTask(app))
-	taskGroup.PATCH("/:task_id", UpdateListTask(app))
+	{
+		taskGroup.Use(AuthMiddleware(app))
+		// GET:/lists/:list_id/tasks
+		taskGroup.GET("", GetListTasks(app))
+		// POST:/lists/:list_id/tasks
+		taskGroup.POST("", CreateListTask(app))
+		// GET:/lists/:list_id/tasks/:task_id
+		taskGroup.GET("/:task_id", GetListTask(app))
+		// PATCH:/lists/:list_id/tasks/:task_id
+		taskGroup.PATCH("/:task_id", UpdateListTask(app))
+	}
+
+	userGroup := router.Group("/users")
+	// POST:/users
+	userGroup.POST("", Register(app))
+	// POST:/users/login
+	userGroup.POST("/login", Login(app))
+	{
+		userAuthGroup := userGroup.Group("/")
+		userAuthGroup.Use(AuthMiddleware(app))
+		{
+			// PATCH:/users/:user_id
+			userAuthGroup.PATCH("/:user_id", UpdateUser(app))
+			// POST:/users/logout
+			userAuthGroup.POST("/logout", Logout(app))
+		}
+	}
+
+	tokenGroup := router.Group("/tokens")
+	{
+		tokenGroup.Use(AuthMiddleware(app))
+		// POST:/tokens/refresh
+		tokenGroup.POST("/refresh", Refresh(app))
+		// POST:/tokens/revoke/:session_id
+		tokenGroup.POST("/revoke/:session_id", RevokeSession(app))
+
+	}
 }

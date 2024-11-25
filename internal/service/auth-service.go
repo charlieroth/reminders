@@ -21,13 +21,8 @@ func (as *AuthService) Login(ctx context.Context, req session.CreateSessionReque
 }
 
 // Implements the AuthService.Logout method
-func (as *AuthService) Logout(ctx context.Context, req session.InvalidateSessionRequest) error {
-	return as.repo.InvalidateSession(ctx, req)
-}
-
-// Implements the AuthService.LogoutByEmail method
-func (as *AuthService) LogoutByEmail(ctx context.Context, email string) error {
-	return as.repo.InvalidateSessionByEmail(ctx, session.InvalidateSessionByEmailRequest{Email: email})
+func (as *AuthService) Logout(ctx context.Context, req session.DeleteSessionRequest) error {
+	return as.repo.DeleteSession(ctx, req)
 }
 
 // Implements the AuthService.Refresh method
@@ -35,7 +30,12 @@ func (as *AuthService) Refresh(ctx context.Context, req session.RefreshSessionRe
 	return as.repo.RefreshSession(ctx, req)
 }
 
-// Implements the AuthService.GetSessions method
-func (as *AuthService) GetSessions(ctx context.Context) ([]session.Session, error) {
-	return as.repo.GetSessions(ctx)
+// Implements the AuthService.GetSession method
+func (as *AuthService) GetSession(ctx context.Context, req session.GetSessionRequest) (session.Session, error) {
+	return as.repo.GetSession(ctx, req)
+}
+
+// Implements the AuthService.RevokeSession method
+func (as *AuthService) RevokeSession(ctx context.Context, req session.RevokeSessionRequest) error {
+	return as.repo.RevokeSession(ctx, req)
 }

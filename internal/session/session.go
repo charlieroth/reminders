@@ -7,42 +7,43 @@ import (
 )
 
 type Session struct {
-	ID          uuid.UUID
-	UserID      uuid.UUID
-	Token       string
-	CreatedAt   time.Time
-	RefreshedAt time.Time
-	ExpiresAt   time.Time
-	UserAgent   string
-	Active      bool
+	ID           uuid.UUID
+	Email        string
+	RefreshToken string
+	IsRevoked    bool
+	CreatedAt    time.Time
+	ExpiresAt    time.Time
 }
 
-func NewSession(userID uuid.UUID, token string, userAgent string) *Session {
+func NewSession(email string, refreshToken string) *Session {
 	return &Session{
-		ID:        uuid.New(),
-		UserID:    userID,
-		Token:     token,
-		UserAgent: userAgent,
+		ID:           uuid.New(),
+		Email:        email,
+		RefreshToken: refreshToken,
 	}
 }
 
 type CreateSessionRequest struct {
-	UserID    uuid.UUID
-	Token     string
-	UserAgent string
+	ID           uuid.UUID
+	Email        string
+	RefreshToken string
+	IsRevoked    bool
+	ExpiresAt    time.Time
 }
 
 type RefreshSessionRequest struct {
-	UserID    uuid.UUID
-	Token     string
-	ExpiresAt int64
-	UserAgent string
+	Email        string
+	RefreshToken string
 }
 
-type InvalidateSessionRequest struct {
-	Token string
+type RevokeSessionRequest struct {
+	ID uuid.UUID
 }
 
-type InvalidateSessionByEmailRequest struct {
-	Email string
+type DeleteSessionRequest struct {
+	ID uuid.UUID
+}
+
+type GetSessionRequest struct {
+	ID uuid.UUID
 }

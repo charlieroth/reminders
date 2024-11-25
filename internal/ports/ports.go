@@ -16,18 +16,19 @@ type DatabaseService interface {
 
 type AuthService interface {
 	Login(ctx context.Context, req session.CreateSessionRequest) (session.Session, error)
-	Logout(ctx context.Context, req session.CreateSessionRequest) error
+	Logout(ctx context.Context, req session.DeleteSessionRequest) error
 	LogoutByEmail(ctx context.Context, email string) error
 	Refresh(ctx context.Context, req session.RefreshSessionRequest) (session.Session, error)
-	GetSessions(ctx context.Context) ([]session.Session, error)
+	GetSession(ctx context.Context, req session.GetSessionRequest) (session.Session, error)
+	RevokeSession(ctx context.Context, req session.RevokeSessionRequest) error
 }
 
 type SessionRepository interface {
 	CreateSession(ctx context.Context, req session.CreateSessionRequest) (session.Session, error)
 	RefreshSession(ctx context.Context, req session.RefreshSessionRequest) (session.Session, error)
-	InvalidateSession(ctx context.Context, req session.InvalidateSessionRequest) error
-	InvalidateSessionByEmail(ctx context.Context, req session.InvalidateSessionByEmailRequest) error
-	GetSessions(ctx context.Context) ([]session.Session, error)
+	RevokeSession(ctx context.Context, req session.RevokeSessionRequest) error
+	DeleteSession(ctx context.Context, req session.DeleteSessionRequest) error
+	GetSession(ctx context.Context, req session.GetSessionRequest) (session.Session, error)
 }
 
 type UserService interface {

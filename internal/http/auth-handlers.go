@@ -6,9 +6,36 @@ import (
 
 	"github.com/charlieroth/reminders/internal/jwt"
 	"github.com/charlieroth/reminders/internal/session"
+	"github.com/charlieroth/reminders/internal/user"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
+type RegisterRequest struct {
+	Email        string `json:"email"`
+	PasswordHash string `json:"password_hash"`
+}
+
+func Register(app *App) gin.HandlerFunc {
+	return func(gtx *gin.Context) {
+		var req RegisterRequest
+		if err := gtx.ShouldBindJSON(&req); err != nil {
+			gtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		_, err := app.userService.CreateUser(gtx.Request.Context(), user.CreateUserRequest{
+			Email:        req.Email,
+			PasswordHash: req.PasswordHash,
+		})
+		if err != nil {
+			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		gtx.JSON(http.StatusCreated, nil)
+	}
+}
 
 type LoginRequest struct {
 	Email        string `json:"email"`
@@ -16,7 +43,11 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	Token string `json:"token"`
+	SessionID             uuid.UUID `json:"session_id"`
+	AccessToken           string    `json:"access_token"`
+	AccessTokenExpiresAt  time.Time `json:"access_token_expires_at"`
+	RefreshToken          string    `json:"refresh_token"`
+	RefreshTokenExpiresAt time.Time `json:"refresh_token_expires_at"`
 }
 
 func Login(app *App) gin.HandlerFunc {
@@ -38,40 +69,53 @@ func Login(app *App) gin.HandlerFunc {
 			return
 		}
 
-		expUtc := time.Now().Add(time.Minute * 60).Unix()
-		token, err := jwt.GenerateToken(app.config, user.ID, expUtc)
+		accessTokenExpirationDuration := time.Minute * 15
+		accessToken, accessClaims, err := jwt.CreateToken(app.config, user.ID, user.Email, false, accessTokenExpirationDuration)
+		if err != nil {
+			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		refreshTokenExpirationDuration := time.Minute * 60
+		refreshToken, refreshClaims, err := jwt.CreateToken(app.config, user.ID, user.Email, false, refreshTokenExpirationDuration)
 		if err != nil {
 			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		session, err := app.authService.Login(gtx.Request.Context(), session.CreateSessionRequest{
-			UserID:    user.ID,
-			Token:     token,
-			UserAgent: gtx.Request.UserAgent(),
+			ID:           uuid.MustParse(refreshClaims.RegisteredClaims.ID),
+			Email:        user.Email,
+			RefreshToken: refreshToken,
+			IsRevoked:    false,
+			ExpiresAt:    refreshClaims.RegisteredClaims.ExpiresAt.Time,
 		})
 		if err != nil {
 			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		gtx.JSON(http.StatusOK, LoginResponse{Token: session.Token})
+		gtx.JSON(http.StatusOK, LoginResponse{
+			SessionID:             session.ID,
+			AccessToken:           accessToken,
+			AccessTokenExpiresAt:  accessClaims.RegisteredClaims.ExpiresAt.Time,
+			RefreshToken:          refreshToken,
+			RefreshTokenExpiresAt: refreshClaims.RegisteredClaims.ExpiresAt.Time,
+		})
 	}
-}
-
-type LogoutRequest struct {
-	Email string `json:"email"`
 }
 
 func Logout(app *App) gin.HandlerFunc {
 	return func(gtx *gin.Context) {
-		var req LogoutRequest
-		if err := gtx.ShouldBindJSON(&req); err != nil {
-			gtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		sessionID, err := uuid.Parse(gtx.Param("session_id"))
+		if err != nil {
+			gtx.JSON(http.StatusBadRequest, gin.H{"error": "invalid session id"})
 			return
 		}
 
-		err := app.authService.LogoutByEmail(gtx.Request.Context(), req.Email)
+		err = app.authService.Logout(gtx.Request.Context(), session.DeleteSessionRequest{
+			ID: sessionID,
+		})
 		if err != nil {
 			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -81,50 +125,83 @@ func Logout(app *App) gin.HandlerFunc {
 	}
 }
 
+type RefreshRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+type RefreshResponse struct {
+	AccessToken          string    `json:"access_token"`
+	AccessTokenExpiresAt time.Time `json:"access_token_expires_at"`
+}
+
 func Refresh(app *App) gin.HandlerFunc {
 	return func(gtx *gin.Context) {
-		userID := gtx.GetString("user_id")
-		if userID == "" {
-			gtx.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
+		var req RefreshRequest
+		if err := gtx.ShouldBindJSON(&req); err != nil {
+			gtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		userUUID, err := uuid.Parse(userID)
+		refreshClaims, err := jwt.VerifyToken(app.config, req.RefreshToken)
 		if err != nil {
-			gtx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user id"})
+			gtx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid refresh token"})
 			return
 		}
 
-		expUtc := time.Now().Add(time.Minute * 60).Unix()
-		token, err := jwt.GenerateToken(app.config, userUUID, expUtc)
+		session, err := app.authService.GetSession(gtx.Request.Context(), session.GetSessionRequest{
+			ID: uuid.MustParse(refreshClaims.RegisteredClaims.ID),
+		})
+		if err != nil {
+			gtx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid refresh token"})
+			return
+		}
+
+		if session.IsRevoked {
+			gtx.JSON(http.StatusUnauthorized, gin.H{"error": "session revoked"})
+			return
+		}
+
+		if session.Email != refreshClaims.Email {
+			gtx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid session"})
+			return
+		}
+
+		accessTokenExpirationDuration := time.Minute * 15
+		accessToken, accessClaims, err := jwt.CreateToken(
+			app.config,
+			refreshClaims.ID,
+			refreshClaims.Email,
+			refreshClaims.IsAdmin,
+			accessTokenExpirationDuration,
+		)
 		if err != nil {
 			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		expiresAt, err := jwt.ExpiresAt(app.config, token)
+		gtx.JSON(http.StatusOK, RefreshResponse{
+			AccessToken:          accessToken,
+			AccessTokenExpiresAt: accessClaims.RegisteredClaims.ExpiresAt.Time,
+		})
+	}
+}
+
+func RevokeSession(app *App) gin.HandlerFunc {
+	return func(gtx *gin.Context) {
+		sessionID, err := uuid.Parse(gtx.Param("session_id"))
 		if err != nil {
-			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			gtx.JSON(http.StatusBadRequest, gin.H{"error": "invalid session id"})
 			return
 		}
 
-		session, err := app.authService.Refresh(gtx.Request.Context(), session.RefreshSessionRequest{
-			UserID:    userUUID,
-			Token:     token,
-			ExpiresAt: expiresAt,
-			UserAgent: gtx.Request.UserAgent(),
+		err = app.authService.RevokeSession(gtx.Request.Context(), session.RevokeSessionRequest{
+			ID: sessionID,
 		})
 		if err != nil {
 			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		gtx.JSON(http.StatusOK, session)
-	}
-}
-
-func GetSessions(app *App) gin.HandlerFunc {
-	return func(gtx *gin.Context) {
 		gtx.JSON(http.StatusOK, nil)
 	}
 }

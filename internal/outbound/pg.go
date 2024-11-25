@@ -64,13 +64,13 @@ func (pg *Pg) CreateSession(ctx context.Context, req session.CreateSessionReques
 
 	sessionId := uuid.New()
 	row := pg.db.QueryRowContext(ctx, `
-		INSERT INTO sessions (id, user_id, token, user_agent)
-		VALUES ($1, $2, $3, $4)
-		RETURNING id, user_id, token, created_at, refreshed_at, expires_at, user_agent, active
-	`, sessionId, req.UserID, req.Token, req.UserAgent)
+		INSERT INTO sessions (id, email, refresh_token)
+		VALUES ($1, $2, $3)
+		RETURNING id, email, refresh_token, created_at, is_revoked
+	`, sessionId, req.Email, req.RefreshToken)
 
 	var s session.Session
-	if err := row.Scan(&s.ID, &s.UserID, &s.Token, &s.CreatedAt, &s.RefreshedAt, &s.ExpiresAt, &s.UserAgent, &s.Active); err != nil {
+	if err := row.Scan(&s.ID, &s.Email, &s.RefreshToken, &s.CreatedAt, &s.IsRevoked); err != nil {
 		return session.Session{}, err
 	}
 
@@ -90,12 +90,12 @@ func (pg *Pg) RefreshSession(ctx context.Context, req session.RefreshSessionRequ
 	defer tx.Rollback()
 
 	row := pg.db.QueryRowContext(ctx, `
-		UPDATE sessions SET refreshed_at = $1, active = $2, expires_at = $3 WHERE token = $4
-		RETURNING id, user_id, token, created_at, refreshed_at, expires_at, user_agent, active
-	`, time.Now().UTC(), true, req.ExpiresAt, req.Token)
+		UPDATE sessions SET refresh_token = $1 WHERE email = $2
+		RETURNING id, email, refresh_token, created_at, is_revoked
+	`, req.RefreshToken, req.Email)
 
 	var s session.Session
-	if err := row.Scan(&s.ID, &s.UserID, &s.Token, &s.CreatedAt, &s.RefreshedAt, &s.ExpiresAt, &s.UserAgent, &s.Active); err != nil {
+	if err := row.Scan(&s.ID, &s.Email, &s.RefreshToken, &s.CreatedAt, &s.IsRevoked); err != nil {
 		return session.Session{}, err
 	}
 
@@ -106,8 +106,8 @@ func (pg *Pg) RefreshSession(ctx context.Context, req session.RefreshSessionRequ
 	return s, nil
 }
 
-// Implements the SessionRepository.InvalidateSession method
-func (pg *Pg) InvalidateSession(ctx context.Context, req session.InvalidateSessionRequest) error {
+// Implements the SessionRepository.RevokeSession method
+func (pg *Pg) RevokeSession(ctx context.Context, req session.RevokeSessionRequest) error {
 	tx, err := pg.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -115,8 +115,8 @@ func (pg *Pg) InvalidateSession(ctx context.Context, req session.InvalidateSessi
 	defer tx.Rollback()
 
 	_, err = pg.db.ExecContext(ctx, `
-		UPDATE sessions SET active = $1 WHERE token = $2
-	`, false, req.Token)
+		UPDATE sessions SET is_revoked = $1 WHERE id = $2
+	`, true, req.ID)
 	if err != nil {
 		return err
 	}
@@ -124,14 +124,26 @@ func (pg *Pg) InvalidateSession(ctx context.Context, req session.InvalidateSessi
 	return nil
 }
 
-// Implements the SessionRepository.InvalidateSessionByEmail method
-func (pg *Pg) InvalidateSessionByEmail(ctx context.Context, req session.InvalidateSessionByEmailRequest) error {
-	return nil
+// Implements the SessionRepository.DeleteSession method
+func (pg *Pg) DeleteSession(ctx context.Context, req session.DeleteSessionRequest) error {
+	_, err := pg.db.ExecContext(ctx, `
+		DELETE FROM sessions WHERE id = $1
+	`, req.ID)
+	return err
 }
 
-// Implements the SessionRepository.GetSessions method
-func (pg *Pg) GetSessions(ctx context.Context) ([]session.Session, error) {
-	return []session.Session{}, nil
+// Implements the SessionRepository.GetSession method
+func (pg *Pg) GetSession(ctx context.Context, req session.GetSessionRequest) (session.Session, error) {
+	row := pg.db.QueryRowContext(ctx, `
+		SELECT id, email, refresh_token, expires_at, created_at, is_revoked FROM sessions WHERE id = $1
+	`, req.ID)
+
+	var s session.Session
+	if err := row.Scan(&s.ID, &s.Email, &s.RefreshToken, &s.ExpiresAt, &s.CreatedAt, &s.IsRevoked); err != nil {
+		return session.Session{}, err
+	}
+
+	return s, nil
 }
 
 // Implements the UserRepository.CreateUser method
