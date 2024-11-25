@@ -49,9 +49,7 @@ func main() {
 		databaseService,
 		taskService,
 		listService,
-		remindersHttp.HttpServerConfig{
-			Port: config.ServerPort,
-		},
+		config,
 	)
 
 	go func() {

@@ -16,6 +16,14 @@ func NewUserService(userRepository ports.UserRepository) *UserService {
 	return &UserService{userRepository: userRepository}
 }
 
+func (us *UserService) GetUserByEmail(ctx context.Context, email string) (user.User, error) {
+	return us.userRepository.GetUserByEmail(ctx, email)
+}
+
+func (us *UserService) GetUserByID(ctx context.Context, id uuid.UUID) (user.User, error) {
+	return us.userRepository.GetUserByID(ctx, id)
+}
+
 func (us *UserService) CreateUser(ctx context.Context, req user.CreateUserRequest) (user.User, error) {
 	return us.userRepository.CreateUser(ctx, req)
 }

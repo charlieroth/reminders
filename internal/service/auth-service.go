@@ -21,8 +21,13 @@ func (as *AuthService) Login(ctx context.Context, req session.CreateSessionReque
 }
 
 // Implements the AuthService.Logout method
-func (as *AuthService) Logout(ctx context.Context, req session.InvalidateSessionRequest) (session.Session, error) {
+func (as *AuthService) Logout(ctx context.Context, req session.InvalidateSessionRequest) error {
 	return as.repo.InvalidateSession(ctx, req)
+}
+
+// Implements the AuthService.LogoutByEmail method
+func (as *AuthService) LogoutByEmail(ctx context.Context, email string) error {
+	return as.repo.InvalidateSessionByEmail(ctx, session.InvalidateSessionByEmailRequest{Email: email})
 }
 
 // Implements the AuthService.Refresh method

@@ -35,10 +35,14 @@ type CreateSessionRequest struct {
 type RefreshSessionRequest struct {
 	UserID    uuid.UUID
 	Token     string
+	ExpiresAt int64
 	UserAgent string
 }
 
 type InvalidateSessionRequest struct {
-	UserID uuid.UUID
-	Token  string
+	Token string
+}
+
+type InvalidateSessionByEmailRequest struct {
+	Email string
 }

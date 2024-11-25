@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/charlieroth/reminders/internal/config"
 	"github.com/charlieroth/reminders/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -18,6 +19,7 @@ type App struct {
 	databaseService *service.DatabaseService
 	taskService     *service.TaskService
 	listService     *service.ListService
+	config          *config.Config
 }
 
 func NewHttpServer(
@@ -26,9 +28,10 @@ func NewHttpServer(
 	databaseService *service.DatabaseService,
 	taskService *service.TaskService,
 	listService *service.ListService,
-	config HttpServerConfig,
+	config *config.Config,
 ) *http.Server {
 	app := &App{
+		config:          config,
 		userService:     userService,
 		authService:     authService,
 		databaseService: databaseService,
@@ -38,7 +41,7 @@ func NewHttpServer(
 	router := gin.New()
 	apiRoutes(router, app)
 	return &http.Server{
-		Addr:    fmt.Sprintf(":%s", config.Port),
+		Addr:    fmt.Sprintf(":%s", app.config.ServerPort),
 		Handler: router.Handler(),
 	}
 }
@@ -49,23 +52,29 @@ func apiRoutes(router *gin.Engine, app *App) {
 	router.GET("/readiness", ReadinessCheck(app))
 	router.GET("/liveness", LivenessCheck(app))
 
-	router.POST("/auth/login", Login(app))
-	router.POST("/auth/logout", Logout(app))
-	router.POST("/auth/refresh", Refresh(app))
-	router.GET("/auth/sessions", GetSessions(app))
+	authGroup := router.Group("/auth")
+	authGroup.POST("/login", Login(app))
+	authGroup.POST("/logout", Logout(app))
+	authGroup.POST("/refresh", Refresh(app))
+	authGroup.GET("/sessions", GetSessions(app))
 
-	router.GET("/users", GetUsers(app))
-	router.POST("/users", CreateUser(app))
-	router.GET("/users/:user_id", GetUser(app))
-	router.PATCH("/users/:user_id", UpdateUser(app))
+	userGroup := router.Group("/users")
+	userGroup.GET("", GetUsers(app))
+	userGroup.POST("", CreateUser(app))
+	userGroup.GET("/:user_id", GetUser(app))
+	userGroup.PATCH("/:user_id", UpdateUser(app))
 
-	router.GET("/lists", GetLists(app))
-	router.GET("/lists/:list_id", GetList(app))
-	router.POST("/lists", CreateList(app))
-	router.PATCH("/lists/:list_id", UpdateList(app))
+	listGroup := router.Group("/lists")
+	listGroup.Use(AuthMiddleware(app))
+	listGroup.GET("", GetLists(app))
+	listGroup.GET("/:list_id", GetList(app))
+	listGroup.POST("", CreateList(app))
+	listGroup.PATCH("/:list_id", UpdateList(app))
 
-	router.GET("/lists/:list_id/tasks", GetListTasks(app))
-	router.POST("/lists/:list_id/tasks", CreateListTask(app))
-	router.GET("/lists/:list_id/tasks/:task_id", GetListTask(app))
-	router.PATCH("/lists/:list_id/tasks/:task_id", UpdateListTask(app))
+	taskGroup := listGroup.Group("/:list_id/tasks")
+	taskGroup.Use(AuthMiddleware(app))
+	taskGroup.GET("", GetListTasks(app))
+	taskGroup.POST("", CreateListTask(app))
+	taskGroup.GET("/:task_id", GetListTask(app))
+	taskGroup.PATCH("/:task_id", UpdateListTask(app))
 }

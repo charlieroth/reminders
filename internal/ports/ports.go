@@ -16,21 +16,25 @@ type DatabaseService interface {
 
 type AuthService interface {
 	Login(ctx context.Context, req session.CreateSessionRequest) (session.Session, error)
-	Logout(ctx context.Context, req session.CreateSessionRequest) (session.Session, error)
-	Refresh(ctx context.Context, req session.CreateSessionRequest) (session.Session, error)
+	Logout(ctx context.Context, req session.CreateSessionRequest) error
+	LogoutByEmail(ctx context.Context, email string) error
+	Refresh(ctx context.Context, req session.RefreshSessionRequest) (session.Session, error)
 	GetSessions(ctx context.Context) ([]session.Session, error)
 }
 
 type SessionRepository interface {
 	CreateSession(ctx context.Context, req session.CreateSessionRequest) (session.Session, error)
 	RefreshSession(ctx context.Context, req session.RefreshSessionRequest) (session.Session, error)
-	InvalidateSession(ctx context.Context, req session.InvalidateSessionRequest) (session.Session, error)
+	InvalidateSession(ctx context.Context, req session.InvalidateSessionRequest) error
+	InvalidateSessionByEmail(ctx context.Context, req session.InvalidateSessionByEmailRequest) error
 	GetSessions(ctx context.Context) ([]session.Session, error)
 }
 
 type UserService interface {
 	CreateUser(ctx context.Context, req user.CreateUserRequest) (user.User, error)
 	GetUser(ctx context.Context, id uuid.UUID) (user.User, error)
+	GetUserByEmail(ctx context.Context, email string) (user.User, error)
+	GetUserByID(ctx context.Context, id uuid.UUID) (user.User, error)
 	GetUsers(ctx context.Context) ([]user.User, error)
 	UpdateUser(ctx context.Context, id uuid.UUID, req user.UpdateUserRequest) (user.User, error)
 }
@@ -38,6 +42,8 @@ type UserService interface {
 type UserRepository interface {
 	CreateUser(ctx context.Context, req user.CreateUserRequest) (user.User, error)
 	GetUser(ctx context.Context, id uuid.UUID) (user.User, error)
+	GetUserByEmail(ctx context.Context, email string) (user.User, error)
+	GetUserByID(ctx context.Context, id uuid.UUID) (user.User, error)
 	GetUsers(ctx context.Context) ([]user.User, error)
 	UpdateUser(ctx context.Context, id uuid.UUID, req user.UpdateUserRequest) (user.User, error)
 }

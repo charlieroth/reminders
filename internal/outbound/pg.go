@@ -56,17 +56,77 @@ func (pg *Pg) StatusCheck(ctx context.Context) error {
 
 // Implements the SessionRepository.CreateSession method
 func (pg *Pg) CreateSession(ctx context.Context, req session.CreateSessionRequest) (session.Session, error) {
-	return session.Session{}, nil
+	tx, err := pg.db.BeginTx(ctx, nil)
+	if err != nil {
+		return session.Session{}, err
+	}
+	defer tx.Rollback()
+
+	sessionId := uuid.New()
+	row := pg.db.QueryRowContext(ctx, `
+		INSERT INTO sessions (id, user_id, token, user_agent)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, user_id, token, created_at, refreshed_at, expires_at, user_agent, active
+	`, sessionId, req.UserID, req.Token, req.UserAgent)
+
+	var s session.Session
+	if err := row.Scan(&s.ID, &s.UserID, &s.Token, &s.CreatedAt, &s.RefreshedAt, &s.ExpiresAt, &s.UserAgent, &s.Active); err != nil {
+		return session.Session{}, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return session.Session{}, err
+	}
+
+	return s, nil
 }
 
 // Implements the SessionRepository.RefreshSession method
 func (pg *Pg) RefreshSession(ctx context.Context, req session.RefreshSessionRequest) (session.Session, error) {
-	return session.Session{}, nil
+	tx, err := pg.db.BeginTx(ctx, nil)
+	if err != nil {
+		return session.Session{}, err
+	}
+	defer tx.Rollback()
+
+	row := pg.db.QueryRowContext(ctx, `
+		UPDATE sessions SET refreshed_at = $1, active = $2, expires_at = $3 WHERE token = $4
+		RETURNING id, user_id, token, created_at, refreshed_at, expires_at, user_agent, active
+	`, time.Now().UTC(), true, req.ExpiresAt, req.Token)
+
+	var s session.Session
+	if err := row.Scan(&s.ID, &s.UserID, &s.Token, &s.CreatedAt, &s.RefreshedAt, &s.ExpiresAt, &s.UserAgent, &s.Active); err != nil {
+		return session.Session{}, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return session.Session{}, err
+	}
+
+	return s, nil
 }
 
 // Implements the SessionRepository.InvalidateSession method
-func (pg *Pg) InvalidateSession(ctx context.Context, req session.InvalidateSessionRequest) (session.Session, error) {
-	return session.Session{}, nil
+func (pg *Pg) InvalidateSession(ctx context.Context, req session.InvalidateSessionRequest) error {
+	tx, err := pg.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = pg.db.ExecContext(ctx, `
+		UPDATE sessions SET active = $1 WHERE token = $2
+	`, false, req.Token)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Implements the SessionRepository.InvalidateSessionByEmail method
+func (pg *Pg) InvalidateSessionByEmail(ctx context.Context, req session.InvalidateSessionByEmailRequest) error {
+	return nil
 }
 
 // Implements the SessionRepository.GetSessions method
@@ -103,6 +163,34 @@ func (pg *Pg) CreateUser(ctx context.Context, req user.CreateUserRequest) (user.
 
 // Implements the UserRepository.GetUser method
 func (pg *Pg) GetUser(ctx context.Context, id uuid.UUID) (user.User, error) {
+	row := pg.db.QueryRowContext(ctx, `
+		SELECT id, email, created_at, updated_at FROM users WHERE id = $1
+	`, id)
+
+	var u user.User
+	if err := row.Scan(&u.ID, &u.Email, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		return user.User{}, err
+	}
+
+	return u, nil
+}
+
+// Implements the UserRepository.GetUserByEmail method
+func (pg *Pg) GetUserByEmail(ctx context.Context, email string) (user.User, error) {
+	row := pg.db.QueryRowContext(ctx, `
+		SELECT id, email, created_at, updated_at FROM users WHERE email = $1
+	`, email)
+
+	var u user.User
+	if err := row.Scan(&u.ID, &u.Email, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		return user.User{}, err
+	}
+
+	return u, nil
+}
+
+// Implements the UserRepository.GetUserByID method
+func (pg *Pg) GetUserByID(ctx context.Context, id uuid.UUID) (user.User, error) {
 	row := pg.db.QueryRowContext(ctx, `
 		SELECT id, email, created_at, updated_at FROM users WHERE id = $1
 	`, id)
