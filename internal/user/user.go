@@ -14,6 +14,16 @@ type User struct {
 	UpdatedAt    time.Time
 }
 
+type UserList struct {
+	UserID uuid.UUID
+	ListID uuid.UUID
+}
+
+type UserTask struct {
+	UserID uuid.UUID
+	TaskID uuid.UUID
+}
+
 func NewUser(id uuid.UUID, email string, passwordHash string, now time.Time) User {
 	return User{ID: id, Email: email, PasswordHash: passwordHash, CreatedAt: now, UpdatedAt: now}
 }
