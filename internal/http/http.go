@@ -6,6 +6,8 @@ import (
 
 	"github.com/charlieroth/reminders/internal/config"
 	"github.com/charlieroth/reminders/internal/service"
+	"github.com/gin-contrib/logger"
+	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 )
@@ -51,6 +53,9 @@ func NewHttpServer(
 }
 
 func apiRoutes(router *gin.Engine, app *App) {
+	router.Use(requestid.New())
+	router.Use(logger.SetLogger())
+
 	// GET:/openapi.json
 	router.GET("/openapi.json", ServeOpenAPISpec(app))
 	// GET:/readiness
