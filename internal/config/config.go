@@ -8,6 +8,7 @@ import (
 )
 
 type Config struct {
+	Environment          string
 	ServerPort           string
 	LogLevel             string
 	DatabaseURL          string
@@ -18,6 +19,7 @@ type Config struct {
 }
 
 func NewConfig() (*Config, error) {
+	environment := os.Getenv("ENVIRONMENT")
 	serverPort := os.Getenv("SERVER_PORT")
 	logLevel := os.Getenv("LOG_LEVEL")
 	databaseURL := os.Getenv("DATABASE_URL")
@@ -25,6 +27,10 @@ func NewConfig() (*Config, error) {
 	salt := os.Getenv("SALT")
 	accessTokenDurationMins := os.Getenv("ACCESS_TOKEN_DURATION_MINS")
 	refreshTokenDurationMins := os.Getenv("REFRESH_TOKEN_DURATION_MINS")
+
+	if environment == "" {
+		return nil, errors.New("ENVIRONMENT must be set")
+	}
 
 	if serverPort == "" || databaseURL == "" || jwtSecret == "" || salt == "" {
 		return nil, errors.New("SERVER_PORT, DATABASE_URL, JWT_SECRET, and SALT must be set")
@@ -57,6 +63,7 @@ func NewConfig() (*Config, error) {
 	}
 
 	return &Config{
+		Environment:          environment,
 		ServerPort:           serverPort,
 		LogLevel:             logLevel,
 		DatabaseURL:          databaseURL,

@@ -7,6 +7,7 @@ import (
 	"github.com/charlieroth/reminders/internal/config"
 	"github.com/charlieroth/reminders/internal/service"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 )
 
 type HttpServerConfig struct {
@@ -20,6 +21,7 @@ type App struct {
 	taskService     *service.TaskService
 	listService     *service.ListService
 	config          *config.Config
+	logger          *zerolog.Logger
 }
 
 func NewHttpServer(
@@ -29,8 +31,10 @@ func NewHttpServer(
 	taskService *service.TaskService,
 	listService *service.ListService,
 	config *config.Config,
+	logger *zerolog.Logger,
 ) *http.Server {
 	app := &App{
+		logger:          logger,
 		config:          config,
 		userService:     userService,
 		authService:     authService,

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
-	"log"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -16,6 +16,7 @@ import (
 
 	"github.com/charlieroth/reminders/internal/config"
 	remindersHttp "github.com/charlieroth/reminders/internal/http"
+	"github.com/charlieroth/reminders/internal/logger"
 	"github.com/charlieroth/reminders/internal/outbound"
 	"github.com/charlieroth/reminders/internal/service"
 )
@@ -23,17 +24,22 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		fmt.Fprintf(os.Stderr, "Error loading .env file: %v\n", err)
+		os.Exit(1)
 	}
 
 	config, err := config.NewConfig()
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		fmt.Fprintf(os.Stderr, "Failed to load config: %v\n", err)
+		os.Exit(1)
 	}
+
+	logger := logger.NewLogger(config.Environment)
 
 	db, err := sql.Open("postgres", config.DatabaseURL)
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		logger.Error().Msgf("Failed to connect to database: %v\n", err)
+		os.Exit(1)
 	}
 	defer db.Close()
 
@@ -50,12 +56,14 @@ func main() {
 		taskService,
 		listService,
 		config,
+		logger,
 	)
 
 	go func() {
 		// service connections
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen: %s\n", err)
+			logger.Error().Msgf("listen: %s\n", err)
+			os.Exit(1)
 		}
 	}()
 
@@ -63,19 +71,19 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutdown Server ...")
+	logger.Info().Msg("Shutdown Server")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v", err)
+		logger.Error().Msgf("Server forced to shutdown: %v\n", err)
 	}
 
 	// catching ctx.Done() timeout of 5 seconds
 	select {
 	case <-ctx.Done():
-		log.Println("timeout of 5 seconds.")
+		logger.Error().Msg("timeout of 5 seconds.")
 	}
-	log.Println("Server exiting")
+	logger.Info().Msg("Server exiting")
 }
