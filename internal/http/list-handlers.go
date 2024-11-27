@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/charlieroth/reminders/internal/list"
+	"github.com/charlieroth/reminders/internal/domain"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -20,7 +20,7 @@ type CreateListResponseData struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func NewCreateListResponseData(list list.List) CreateListResponseData {
+func NewCreateListResponseData(list domain.List) CreateListResponseData {
 	return CreateListResponseData{
 		ID:        list.ID,
 		Name:      list.Name,
@@ -37,7 +37,7 @@ func CreateList(app *App) gin.HandlerFunc {
 			return
 		}
 
-		l, err := app.listService.CreateList(gtx, list.NewCreateListRequest(req.Name))
+		l, err := app.listService.CreateList(gtx, domain.NewCreateListRequest(req.Name))
 		if err != nil {
 			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -51,8 +51,8 @@ type UpdateListRequestBody struct {
 	Name string `json:"name"`
 }
 
-func NewUpdateListRequest(name string) list.UpdateListRequest {
-	return list.UpdateListRequest{Name: name}
+func NewUpdateListRequest(name string) domain.UpdateListRequest {
+	return domain.UpdateListRequest{Name: name}
 }
 
 type UpdateListResponseData struct {
@@ -62,7 +62,7 @@ type UpdateListResponseData struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func NewUpdateListResponseData(list list.List) UpdateListResponseData {
+func NewUpdateListResponseData(list domain.List) UpdateListResponseData {
 	return UpdateListResponseData{
 		ID:        list.ID,
 		Name:      list.Name,
@@ -85,7 +85,7 @@ func UpdateList(app *App) gin.HandlerFunc {
 			return
 		}
 
-		l, err := app.listService.UpdateList(gtx, listID, NewUpdateListRequest(req.Name))
+		l, err := app.listService.UpdateList(gtx, listID, domain.UpdateListRequest{Name: req.Name})
 		if err != nil {
 			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -102,7 +102,7 @@ type GetListResponseData struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func NewGetListResponseData(list list.List) GetListResponseData {
+func NewGetListResponseData(list domain.List) GetListResponseData {
 	return GetListResponseData{
 		ID:        list.ID,
 		Name:      list.Name,
@@ -129,7 +129,7 @@ func GetList(app *App) gin.HandlerFunc {
 	}
 }
 
-func NewGetListsResponseData(lists []list.List) []GetListResponseData {
+func NewGetListsResponseData(lists []domain.List) []GetListResponseData {
 	responseData := []GetListResponseData{}
 	for _, l := range lists {
 		responseData = append(responseData, NewGetListResponseData(l))

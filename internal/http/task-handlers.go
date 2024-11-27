@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/charlieroth/reminders/internal/task"
+	"github.com/charlieroth/reminders/internal/domain"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -17,7 +17,7 @@ type GetTaskResponseData struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func NewGetTaskResponseData(task task.Task) GetTaskResponseData {
+func NewGetTaskResponseData(task domain.Task) GetTaskResponseData {
 	return GetTaskResponseData{
 		ID:        task.ID,
 		Title:     task.Title,
@@ -56,7 +56,7 @@ type GetListTasksResponseData struct {
 	Tasks  []GetTaskResponseData `json:"tasks"`
 }
 
-func NewGetListTasksResponseData(listID uuid.UUID, tasks []task.Task) GetListTasksResponseData {
+func NewGetListTasksResponseData(listID uuid.UUID, tasks []domain.Task) GetListTasksResponseData {
 	responseData := []GetTaskResponseData{}
 	for _, t := range tasks {
 		responseData = append(responseData, NewGetTaskResponseData(t))
@@ -106,7 +106,7 @@ type CreateTaskResponseData struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func NewCreateTaskResponseData(task task.Task) CreateTaskResponseData {
+func NewCreateTaskResponseData(task domain.Task) CreateTaskResponseData {
 	return CreateTaskResponseData{
 		ID:        task.ID,
 		Title:     task.Title,
@@ -121,7 +121,7 @@ type CreateListTaskResponseData struct {
 	Task   CreateTaskResponseData `json:"task"`
 }
 
-func NewCreateListTaskResponseData(listID uuid.UUID, task task.Task) CreateListTaskResponseData {
+func NewCreateListTaskResponseData(listID uuid.UUID, task domain.Task) CreateListTaskResponseData {
 	return CreateListTaskResponseData{
 		ListID: listID,
 		Task:   NewCreateTaskResponseData(task),
@@ -142,7 +142,7 @@ func CreateListTask(app *App) gin.HandlerFunc {
 			return
 		}
 
-		createTaskRequest := task.CreateTaskRequest{Title: request.Title}
+		createTaskRequest := domain.CreateTaskRequest{Title: request.Title}
 		t, err := app.taskService.CreateListTask(gtx, listID, createTaskRequest)
 		if err != nil {
 			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -166,7 +166,7 @@ type UpdateTaskResponseData struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func NewUpdateTaskResponseData(task task.Task) UpdateTaskResponseData {
+func NewUpdateTaskResponseData(task domain.Task) UpdateTaskResponseData {
 	return UpdateTaskResponseData{
 		ID:        task.ID,
 		Title:     task.Title,
@@ -196,7 +196,7 @@ func UpdateListTask(app *App) gin.HandlerFunc {
 			return
 		}
 
-		updateListTaskRequest := task.UpdateTaskRequest{
+		updateListTaskRequest := domain.UpdateTaskRequest{
 			Title:     request.Title,
 			Completed: request.Completed,
 		}

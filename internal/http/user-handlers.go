@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/charlieroth/reminders/internal/user"
+	"github.com/charlieroth/reminders/internal/domain"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -21,7 +21,7 @@ type CreateUserResponseData struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func NewCreateUserResponseData(user user.User) CreateUserResponseData {
+func NewCreateUserResponseData(user domain.User) CreateUserResponseData {
 	return CreateUserResponseData{
 		ID:        user.ID,
 		Email:     user.Email,
@@ -38,7 +38,7 @@ func CreateUser(app *App) gin.HandlerFunc {
 			return
 		}
 
-		u, err := app.userService.CreateUser(gtx, user.NewCreateUserRequest(req.Email, req.PasswordHash))
+		u, err := app.userService.CreateUser(gtx, domain.CreateUserRequest{Email: req.Email, PasswordHash: req.PasswordHash})
 		if err != nil {
 			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -55,7 +55,7 @@ type GetUserResponseData struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func NewGetUserResponseData(user user.User) GetUserResponseData {
+func NewGetUserResponseData(user domain.User) GetUserResponseData {
 	return GetUserResponseData{
 		ID:        user.ID,
 		Email:     user.Email,
@@ -82,7 +82,7 @@ func GetUser(app *App) gin.HandlerFunc {
 	}
 }
 
-func NewGetUsersResponseData(users []user.User) []GetUserResponseData {
+func NewGetUsersResponseData(users []domain.User) []GetUserResponseData {
 	responseData := []GetUserResponseData{}
 	for _, u := range users {
 		responseData = append(responseData, NewGetUserResponseData(u))
@@ -103,8 +103,8 @@ func GetUsers(app *App) gin.HandlerFunc {
 }
 
 type UpdateUserRequestBody struct {
-	Email    *string `json:"email"`
-	Password *string `json:"password"`
+	Email        *string `json:"email"`
+	PasswordHash *string `json:"password_hash"`
 }
 
 func UpdateUser(app *App) gin.HandlerFunc {
@@ -121,7 +121,7 @@ func UpdateUser(app *App) gin.HandlerFunc {
 			return
 		}
 
-		u, err := app.userService.UpdateUser(gtx, userId, user.NewUpdateUserRequest(req.Email, req.Password))
+		u, err := app.userService.UpdateUser(gtx, userId, domain.UpdateUserRequest{Email: req.Email, PasswordHash: req.PasswordHash})
 		if err != nil {
 			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

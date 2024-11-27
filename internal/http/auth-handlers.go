@@ -4,9 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/charlieroth/reminders/internal/domain"
 	"github.com/charlieroth/reminders/internal/jwt"
-	"github.com/charlieroth/reminders/internal/session"
-	"github.com/charlieroth/reminders/internal/user"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -24,7 +23,7 @@ func Register(app *App) gin.HandlerFunc {
 			return
 		}
 
-		_, err := app.userService.CreateUser(gtx.Request.Context(), user.CreateUserRequest{
+		_, err := app.userService.CreateUser(gtx.Request.Context(), domain.CreateUserRequest{
 			Email:        req.Email,
 			PasswordHash: req.PasswordHash,
 		})
@@ -81,7 +80,7 @@ func Login(app *App) gin.HandlerFunc {
 			return
 		}
 
-		session, err := app.authService.Login(gtx.Request.Context(), session.CreateSessionRequest{
+		session, err := app.authService.Login(gtx.Request.Context(), domain.CreateSessionRequest{
 			ID:           uuid.MustParse(refreshClaims.RegisteredClaims.ID),
 			Email:        user.Email,
 			RefreshToken: refreshToken,
@@ -111,7 +110,7 @@ func Logout(app *App) gin.HandlerFunc {
 			return
 		}
 
-		err = app.authService.Logout(gtx.Request.Context(), session.DeleteSessionRequest{
+		err = app.authService.Logout(gtx.Request.Context(), domain.DeleteSessionRequest{
 			ID: sessionID,
 		})
 		if err != nil {
@@ -146,7 +145,7 @@ func Refresh(app *App) gin.HandlerFunc {
 			return
 		}
 
-		session, err := app.authService.GetSession(gtx.Request.Context(), session.GetSessionRequest{
+		session, err := app.authService.GetSession(gtx.Request.Context(), domain.GetSessionRequest{
 			ID: uuid.MustParse(refreshClaims.RegisteredClaims.ID),
 		})
 		if err != nil {
@@ -191,7 +190,7 @@ func RevokeSession(app *App) gin.HandlerFunc {
 			return
 		}
 
-		err = app.authService.RevokeSession(gtx.Request.Context(), session.RevokeSessionRequest{
+		err = app.authService.RevokeSession(gtx.Request.Context(), domain.RevokeSessionRequest{
 			ID: sessionID,
 		})
 		if err != nil {
