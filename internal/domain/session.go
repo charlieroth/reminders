@@ -15,14 +15,6 @@ type Session struct {
 	ExpiresAt    time.Time
 }
 
-func NewSession(email string, refreshToken string) *Session {
-	return &Session{
-		ID:           uuid.New(),
-		Email:        email,
-		RefreshToken: refreshToken,
-	}
-}
-
 type CreateSessionRequest struct {
 	ID           uuid.UUID
 	Email        string

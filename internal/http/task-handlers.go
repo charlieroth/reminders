@@ -86,14 +86,14 @@ func GetListTasks(app *App) gin.HandlerFunc {
 	}
 }
 
-type CreateListTaskRequest struct {
+type CreateListTaskRequestBody struct {
 	Title string `json:"title"`
 }
 
-func NewCreateListTaskRequest(gtx *gin.Context) (CreateListTaskRequest, error) {
-	var request CreateListTaskRequest
+func NewCreateListTaskRequest(gtx *gin.Context) (CreateListTaskRequestBody, error) {
+	var request CreateListTaskRequestBody
 	if err := gtx.ShouldBindJSON(&request); err != nil {
-		return CreateListTaskRequest{}, err
+		return CreateListTaskRequestBody{}, err
 	}
 	return request, nil
 }
@@ -153,7 +153,7 @@ func CreateListTask(app *App) gin.HandlerFunc {
 	}
 }
 
-type UpdateListTaskRequest struct {
+type UpdateListTaskRequestBody struct {
 	Title     *string `json:"title"`
 	Completed *bool   `json:"completed"`
 }
@@ -178,7 +178,7 @@ func NewUpdateTaskResponseData(task domain.Task) UpdateTaskResponseData {
 
 func UpdateListTask(app *App) gin.HandlerFunc {
 	return func(gtx *gin.Context) {
-		var request UpdateListTaskRequest
+		var request UpdateListTaskRequestBody
 		if err := gtx.ShouldBindJSON(&request); err != nil {
 			gtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

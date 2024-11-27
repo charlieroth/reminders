@@ -36,12 +36,12 @@ func Register(app *App) gin.HandlerFunc {
 	}
 }
 
-type LoginRequest struct {
+type LoginRequestBody struct {
 	Email        string `json:"email"`
 	PasswordHash string `json:"password_hash"`
 }
 
-type LoginResponse struct {
+type LoginResponseData struct {
 	SessionID             uuid.UUID `json:"session_id"`
 	AccessToken           string    `json:"access_token"`
 	AccessTokenExpiresAt  time.Time `json:"access_token_expires_at"`
@@ -51,7 +51,7 @@ type LoginResponse struct {
 
 func Login(app *App) gin.HandlerFunc {
 	return func(gtx *gin.Context) {
-		var req LoginRequest
+		var req LoginRequestBody
 		if err := gtx.ShouldBindJSON(&req); err != nil {
 			gtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -92,7 +92,7 @@ func Login(app *App) gin.HandlerFunc {
 			return
 		}
 
-		gtx.JSON(http.StatusOK, LoginResponse{
+		gtx.JSON(http.StatusOK, LoginResponseData{
 			SessionID:             session.ID,
 			AccessToken:           accessToken,
 			AccessTokenExpiresAt:  accessClaims.RegisteredClaims.ExpiresAt.Time,

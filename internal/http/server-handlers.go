@@ -21,26 +21,26 @@ func ServeOpenAPISpec(app *App) gin.HandlerFunc {
 	}
 }
 
-type ReadinessCheckResponse struct {
+type ReadinessCheckResponseData struct {
 	Status string `json:"status"`
 }
 
 func ReadinessCheck(app *App) gin.HandlerFunc {
 	return func(gtx *gin.Context) {
 		if err := app.databaseService.StatusCheck(gtx.Request.Context()); err != nil {
-			gtx.JSON(http.StatusServiceUnavailable, ReadinessCheckResponse{
+			gtx.JSON(http.StatusServiceUnavailable, ReadinessCheckResponseData{
 				Status: "unavailable",
 			})
 			return
 		}
 
-		gtx.JSON(http.StatusOK, ReadinessCheckResponse{
+		gtx.JSON(http.StatusOK, ReadinessCheckResponseData{
 			Status: "ok",
 		})
 	}
 }
 
-type LivenessCheckResponse struct {
+type LivenessCheckResponseData struct {
 	Status     string `json:"status"`
 	Host       string `json:"host"`
 	GOMAXPROCS int    `json:"gomaxprocs"`
@@ -54,7 +54,7 @@ func LivenessCheck(app *App) gin.HandlerFunc {
 			return
 		}
 
-		gtx.JSON(http.StatusOK, LivenessCheckResponse{
+		gtx.JSON(http.StatusOK, LivenessCheckResponseData{
 			Status:     "up",
 			Host:       host,
 			GOMAXPROCS: runtime.GOMAXPROCS(0),

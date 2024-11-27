@@ -37,7 +37,7 @@ func CreateList(app *App) gin.HandlerFunc {
 			return
 		}
 
-		l, err := app.listService.CreateList(gtx, domain.NewCreateListRequest(req.Name))
+		l, err := app.listService.CreateList(gtx, domain.CreateListRequest{Name: req.Name})
 		if err != nil {
 			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -49,10 +49,6 @@ func CreateList(app *App) gin.HandlerFunc {
 
 type UpdateListRequestBody struct {
 	Name string `json:"name"`
-}
-
-func NewUpdateListRequest(name string) domain.UpdateListRequest {
-	return domain.UpdateListRequest{Name: name}
 }
 
 type UpdateListResponseData struct {
