@@ -69,15 +69,13 @@ func Login(app *App) gin.HandlerFunc {
 			return
 		}
 
-		accessTokenExpirationDuration := time.Minute * 15
-		accessToken, accessClaims, err := jwt.CreateToken(app.config, user.ID, user.Email, false, accessTokenExpirationDuration)
+		accessToken, accessClaims, err := jwt.CreateToken(app.config, user.ID, user.Email, false, app.config.AccessTokenDuration)
 		if err != nil {
 			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		refreshTokenExpirationDuration := time.Minute * 60
-		refreshToken, refreshClaims, err := jwt.CreateToken(app.config, user.ID, user.Email, false, refreshTokenExpirationDuration)
+		refreshToken, refreshClaims, err := jwt.CreateToken(app.config, user.ID, user.Email, false, app.config.RefreshTokenDuration)
 		if err != nil {
 			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -166,13 +164,12 @@ func Refresh(app *App) gin.HandlerFunc {
 			return
 		}
 
-		accessTokenExpirationDuration := time.Minute * 15
 		accessToken, accessClaims, err := jwt.CreateToken(
 			app.config,
 			refreshClaims.ID,
 			refreshClaims.Email,
 			refreshClaims.IsAdmin,
-			accessTokenExpirationDuration,
+			app.config.AccessTokenDuration,
 		)
 		if err != nil {
 			gtx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
